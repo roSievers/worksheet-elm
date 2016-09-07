@@ -34,7 +34,14 @@ blankExercise = (Exercise "" "")
 
 init : (Model, Cmd Msg)
 init =
-  (Model [Exercise "Hello" "World"] blankExercise, Cmd.none)
+  (
+    Model [
+      Exercise "Regenbogenstraße" "In der Regenbogenstraße regnet es niemals."
+    , Exercise "Hello World" "Generischer Blindtext um Platz zu verbrauchen."
+    , Exercise "Fritz Kola" "Koffeinhaltige Limonade aus Hamburg."
+    ] blankExercise
+    , Cmd.none
+  )
 
 
 
@@ -80,14 +87,14 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-  div []
+  div [ class "center" ]
     [ h1 [] [ text "Caption" ]
     , div []
       [ input [ type' "text", placeholder "Title", onInput UpdateTitle, value model.newExercise.title ] []
       , input [ type' "text", placeholder "Text", onInput UpdateText, value model.newExercise.text ] []
       , button [ onClick AddExcercise ] [ text "Add to List" ]
       ]
-    , li [] <| List.map renderExercise model.exercises
+    , div [ class "catalog"] <| List.map renderExercise model.exercises
     ]
 
 
@@ -96,7 +103,9 @@ renderExercise exercise =
   div [ class "summary" ]
     [ div []
       [ h1 [] [ text (exercise.title) ]
-      , span [ class "summary-hints" ] []
+      , span [ class "summary-hints" ]
+        [ button [] [ text "delete" ]
+        ]
       , p [ class "summary-text" ] [ text exercise.text ]
       ]
     ]
