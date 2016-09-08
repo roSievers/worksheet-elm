@@ -22,24 +22,26 @@ main =
 type alias Model =
   { exercises : List Exercise
   , newExercise : Exercise
+  , currentUID : Int
   }
 
 type alias Exercise =
   { title : String
   , text  : String
+  , uid : Int
   }
 
-blankExercise = (Exercise "" "")
+blankExercise = (Exercise "" "" -1)
 
 
 init : (Model, Cmd Msg)
 init =
   (
     Model [
-      Exercise "Regenbogenstraße" "In der Regenbogenstraße regnet es niemals."
-    , Exercise "Hello World" "Generischer Blindtext um Platz zu verbrauchen."
-    , Exercise "Fritz Kola" "Koffeinhaltige Limonade aus Hamburg."
-    ] blankExercise
+      Exercise "Regenbogenstraße" "In der Regenbogenstraße regnet es niemals." 1
+    , Exercise "Hello World" "Generischer Blindtext um Platz zu verbrauchen." 2
+    , Exercise "Fritz Kola" "Koffeinhaltige Limonade aus Hamburg." 3
+    ] { blankExercise | uid = 10 } 20
     , Cmd.none
   )
 
@@ -52,6 +54,7 @@ type Msg
   = UpdateTitle String
   | UpdateText String
   | AddExcercise
+  | DeleteExercise Int
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -70,7 +73,16 @@ update msg model =
         ({ model | newExercise = { oldExercise | text = text }}, Cmd.none)
 
     AddExcercise ->
-      ({ model | newExercise = blankExercise, exercises = model.newExercise :: model.exercises}, Cmd.none)
+      ({ model
+        | newExercise = { blankExercise | uid = model.currentUID }
+        , exercises = model.newExercise :: model.exercises
+        , currentUID = model.currentUID + 1
+      },Cmd.none)
+
+    DeleteExercise uid ->
+      ({ model
+        | exercises = List.filter (\e -> e.uid /= uid) model.exercises
+      }, Cmd.none)
 
 
 -- SUBSCRIPTIONS
@@ -104,7 +116,8 @@ renderExercise exercise =
     [ div []
       [ h1 [] [ text (exercise.title) ]
       , span [ class "summary-hints" ]
-        [ button [] [ text "delete" ]
+        [ text ( toString exercise.uid )
+        , button [ onClick (DeleteExercise exercise.uid)] [text "delete" ]
         ]
       , p [ class "summary-text" ] [ text exercise.text ]
       ]
