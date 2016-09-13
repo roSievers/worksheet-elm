@@ -1,0 +1,12 @@
+{
+    "title": "Johanna's Exercise Sheet",
+    "exercises": [{
+        "title": "Hello World",
+        "text": "Generischer Blindtext um Platz zu verbrauchen.",
+        "uid": 2
+    }, {
+        "title": "Erdnüsse",
+        "text": "Ohne Fett im Ofen geröstet.",
+        "uid": 4
+    }]
+}

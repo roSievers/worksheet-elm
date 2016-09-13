@@ -1,45 +1,60 @@
 body {
-	font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
-	color: #293c4b;
+    font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+    color: #293c4b;
+    margin: 0;
 }
 
 .center {
-	width: 920px;
-	margin-left: auto;
-	margin-right: auto;
+    width: 920px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 p {
-	line-height: 1.5em;
+    line-height: 1.5em;
 }
 
 h1, h2, h3, h4 {
-	font-weight: normal;
+    font-weight: normal;
 }
 
-
 .summary {
-	padding: 20px 0;
-	border-bottom: 1px solid #eeeeee;
+    padding: 20px 0;
+    border-bottom: 1px solid #eeeeee;
 }
 
 .summary h1 {
-	margin: 0;
-	font-size: 1.8em;
-	display: inline-block;
+    margin: 0;
+    font-size: 1.8em;
+    display: inline-block;
 }
 
 .summary-hints {
-	float: right;
-	font-size: 1em;
-	padding-top: 0.5em;
-	color: #bbbbbb;
+    float: right;
+    font-size: 1em;
+    padding-top: 0.5em;
+    color: #bbbbbb;
 }
 
 .summary-hints button {
-	color: #bbbbbb;
+    color: #bbbbbb;
 }
 
 .summary-desc {
-	margin: 0.5em 0;
+    margin: 0.5em 0;
+}
+
+.main-pannel {
+    width: 600px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.sidebar {
+    width: 200px;
+    display: inline-block;
+    vertical-align: top;
+    padding: 20px;
+    margin: 20px 20px 20px 40px;
+    border-left: 1px solid #eeeeee;
 }
