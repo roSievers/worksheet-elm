@@ -4,15 +4,13 @@ import Html exposing (..)
 import Html.Attributes exposing (class, type', placeholder, value, style)
 import Html.App as Html
 import Html.Events exposing (..)
-import Random
-import Http
-import Json.Decode as Json exposing ((:=))
-import Task
 import Debug exposing (crash)
-import Components exposing (..)
+import Components
 import Route exposing (..)
 import Events exposing (..)
 import Exercise exposing (..)
+import Requests exposing (..)
+
 
 main =
     Html.program
@@ -39,38 +37,6 @@ type alias Model =
     }
 
 
-
-
-blankExercise =
-    (Exercise "" "" -1 False)
-
-
-buildExercise title text uid =
-    { blankExercise | title = title, text = text, uid = uid }
-
-
-
--- Decoding Exercises
-
-
-decodeExercise =
-    Json.object3 buildExercise
-        ("title" := Json.string)
-        ("text" := Json.string)
-        ("uid" := Json.int)
-
-
-decodeExerciseList : Json.Decoder (List Exercise)
-decodeExerciseList =
-    ("exercises" := Json.list decodeExercise)
-
-
-requestExerciseList : Cmd Msg
-requestExerciseList =
-    Http.get decodeExerciseList ("http://localhost:8000/data/search.json")
-        |> Task.perform (\x -> LoadingFail x) (\list -> LoadingDone list)
-
-
 init : ( Model, Cmd Msg )
 init =
     ( Model
@@ -78,7 +44,7 @@ init =
         []
         { blankExercise | uid = 1000 }
         1001
-    , requestExerciseList
+    , requestExerciseList LoadingDone "http://localhost:8000/data/search.json"
     )
 
 
@@ -179,7 +145,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ renderHeader model
+        [ Components.header model
         , div [ class "center" ]
             (case model.route of
                 Search ->
@@ -205,9 +171,7 @@ renderSheetPanel : Model -> Html Msg
 renderSheetPanel model =
     div [ class "main-pannel" ]
         [ h1 [] [ text "Current Selection" ]
-        , inContainer model
-            |> List.map renderExercise
-            |> div [ class "catalog" ]
+        , Components.exerciseList (inContainer model)
         ]
 
 
@@ -226,38 +190,19 @@ renderMainPannel model =
             , input [ type' "text", placeholder "Text", onInput UpdateText, value model.newExercise.text ] []
             , button [ onClick CreateExercise ] [ text "Add to List" ]
             ]
-        , div [ class "catalog" ] <| List.map renderExercise model.exercises
+        , Components.exerciseList model.exercises
         ]
 
 
 renderSidebar : Model -> Html Msg
 renderSidebar model =
-    div [ class "sidebar" ]
-        [ h1 []
-            [ h2 [] [ text "sidebar" ]
-            , p []
-                [ text "Count: "
-                , inContainer model
-                    |> List.length
-                    |> toString
-                    |> text
-                ]
-            ]
-        ]
-
-
-renderExercise : Exercise -> Html Msg
-renderExercise exercise =
-    div [ class "summary" ]
-        [ div []
-            [ h1 [] [ text (exercise.title) ]
-            , span [ class "summary-hints" ]
-                [ if exercise.inActiveContainer then
-                    button [ onClick (RemoveExercise exercise.uid) ] [ text "Remove Exercise" ]
-                  else
-                    button [ onClick (AddExercise exercise.uid) ] [ text "Add Exercise" ]
-                , button [ onClick (DeleteExercise exercise.uid) ] [ text "delete" ]
-                ]
-            , p [ class "summary-text" ] [ text exercise.text ]
+    div [ class "Sidebar" ]
+        [ h1 [] [ text "sidebar" ]
+        , p []
+            [ text "Count: "
+            , inContainer model
+                |> List.length
+                |> toString
+                |> text
             ]
         ]
