@@ -84,27 +84,6 @@ update msg model =
             , Cmd.none
             )
 
-        DeleteExercise uid ->
-            ( { model
-                | exercises = List.filter (\e -> e.uid /= uid) model.exercises
-              }
-            , Cmd.none
-            )
-
-        AddExercise exercise ->
-            ( { model
-                | sheet = ExerciseSheet.insert exercise model.sheet
-              }
-            , Cmd.none
-            )
-
-        RemoveExercise uid ->
-            ( { model
-                | sheet = ExerciseSheet.remove uid model.sheet
-              }
-            , Cmd.none
-            )
-
         SetRoute route ->
             ( { model
                 | route = route
@@ -125,6 +104,27 @@ update msg model =
         SheetArrived new ->
             ( { model
                 | sheet = ExerciseSheet.fromList new
+              }
+            , Cmd.none
+            )
+
+        ExerciseMessage msg' ->
+            updateExercise msg' model
+
+
+updateExercise : ExerciseMsg -> Model -> ( Model, Cmd Msg )
+updateExercise msg model =
+    case msg of
+        AddExercise exercise ->
+            ( { model
+                | sheet = ExerciseSheet.insert exercise model.sheet
+              }
+            , Cmd.none
+            )
+
+        RemoveExercise uid ->
+            ( { model
+                | sheet = ExerciseSheet.remove uid model.sheet
               }
             , Cmd.none
             )

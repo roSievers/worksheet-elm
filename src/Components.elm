@@ -9,7 +9,10 @@ import Events exposing (..)
 import Exercise exposing (..)
 import ExerciseSheet exposing (ExerciseSheet)
 
+
 --Header : Model -> Html Msg
+
+
 header model =
     div []
         [ div [ style [ ( "background-color", "rgb(238, 238, 238)" ) ] ]
@@ -29,10 +32,12 @@ header model =
 
 exerciseList : ExerciseSheet -> List Exercise -> Html Msg
 exerciseList sheet exercises =
-    div [ class "catalog" ] <| List.map (exerciseListItem sheet) exercises
+    Html.map ExerciseMessage <|
+        div [ class "catalog" ] <|
+            List.map (exerciseListItem sheet) exercises
 
 
-exerciseListItem : ExerciseSheet -> Exercise -> Html Msg
+exerciseListItem : ExerciseSheet -> Exercise -> Html ExerciseMsg
 exerciseListItem sheet exercise =
     div [ class "summary" ]
         [ div []
@@ -42,7 +47,6 @@ exerciseListItem sheet exercise =
                     button [ onClick (RemoveExercise exercise.uid) ] [ text "Remove Exercise" ]
                   else
                     button [ onClick (AddExercise exercise) ] [ text "Add Exercise" ]
-                , button [ onClick (DeleteExercise exercise.uid) ] [ text "delete" ]
                 ]
             , p [ class "summary-text" ] [ text exercise.text ]
             ]
