@@ -7,6 +7,7 @@ import Html.Events exposing (..)
 import Route exposing (..)
 import Events exposing (..)
 import Exercise exposing (..)
+import ExerciseSheet exposing (ExerciseSheet)
 
 --Header : Model -> Html Msg
 header model =
@@ -26,21 +27,21 @@ header model =
         ]
 
 
-exerciseList : List Exercise -> Html Msg
-exerciseList exercises =
-    div [ class "catalog" ] <| List.map exerciseListItem exercises
+exerciseList : ExerciseSheet -> List Exercise -> Html Msg
+exerciseList sheet exercises =
+    div [ class "catalog" ] <| List.map (exerciseListItem sheet) exercises
 
 
-exerciseListItem : Exercise -> Html Msg
-exerciseListItem exercise =
+exerciseListItem : ExerciseSheet -> Exercise -> Html Msg
+exerciseListItem sheet exercise =
     div [ class "summary" ]
         [ div []
             [ h1 [] [ text (exercise.title) ]
             , span [ class "summary-hints" ]
-                [ if exercise.inActiveContainer then
+                [ if ExerciseSheet.member exercise.uid sheet then
                     button [ onClick (RemoveExercise exercise.uid) ] [ text "Remove Exercise" ]
                   else
-                    button [ onClick (AddExercise exercise.uid) ] [ text "Add Exercise" ]
+                    button [ onClick (AddExercise exercise) ] [ text "Add Exercise" ]
                 , button [ onClick (DeleteExercise exercise.uid) ] [ text "delete" ]
                 ]
             , p [ class "summary-text" ] [ text exercise.text ]

@@ -4,15 +4,12 @@ module Exercise exposing (..)
 type alias Exercise =
     { title : String
     , text : String
-    , uid :
-        Int
-        -- The interface has at most one active container (The current Worksheet).
-    , inActiveContainer : Bool
+    , uid : Int
     }
 
 
 blankExercise =
-    (Exercise "" "" -1 False)
+    (Exercise "" "" -1)
 
 
 buildExercise title text uid =

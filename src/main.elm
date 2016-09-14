@@ -10,6 +10,7 @@ import Route exposing (..)
 import Events exposing (..)
 import Exercise exposing (..)
 import Requests exposing (..)
+import ExerciseSheet exposing (ExerciseSheet)
 
 
 main =
@@ -32,6 +33,7 @@ type alias WithUID a =
 type alias Model =
     { route : Route
     , exercises : List Exercise
+    , sheet : ExerciseSheet
     , newExercise : Exercise
     , currentUID : Int
     }
@@ -42,9 +44,13 @@ init =
     ( Model
         Home
         []
+        (ExerciseSheet.fromList [])
         { blankExercise | uid = 1000 }
         1001
-    , requestExerciseList LoadingDone "http://localhost:8000/data/search.json"
+    , Cmd.batch
+        [ requestExerciseList SearchResultsArrived "./data/search.json"
+        , requestExerciseList SheetArrived "./data/sheet.json"
+        ]
     )
 
 
@@ -85,16 +91,16 @@ update msg model =
             , Cmd.none
             )
 
-        AddExercise uid ->
+        AddExercise exercise ->
             ( { model
-                | exercises = mapOnUID uid (\e -> { e | inActiveContainer = True }) model.exercises
+                | sheet = ExerciseSheet.insert exercise model.sheet
               }
             , Cmd.none
             )
 
         RemoveExercise uid ->
             ( { model
-                | exercises = mapOnUID uid (\e -> { e | inActiveContainer = False }) model.exercises
+                | sheet = ExerciseSheet.remove uid model.sheet
               }
             , Cmd.none
             )
@@ -109,9 +115,16 @@ update msg model =
         LoadingFail err ->
             crash "LoadingFail"
 
-        LoadingDone new ->
+        SearchResultsArrived new ->
             ( { model
                 | exercises = List.append model.exercises new
+              }
+            , Cmd.none
+            )
+
+        SheetArrived new ->
+            ( { model
+                | sheet = ExerciseSheet.fromList new
               }
             , Cmd.none
             )
@@ -171,14 +184,8 @@ renderSheetPanel : Model -> Html Msg
 renderSheetPanel model =
     div [ class "main-pannel" ]
         [ h1 [] [ text "Current Selection" ]
-        , Components.exerciseList (inContainer model)
+        , Components.exerciseList model.sheet (model.sheet.list)
         ]
-
-
-inContainer : Model -> List Exercise
-inContainer model =
-    model.exercises
-        |> List.filter (\e -> e.inActiveContainer)
 
 
 renderMainPannel : Model -> Html Msg
@@ -190,7 +197,7 @@ renderMainPannel model =
             , input [ type' "text", placeholder "Text", onInput UpdateText, value model.newExercise.text ] []
             , button [ onClick CreateExercise ] [ text "Add to List" ]
             ]
-        , Components.exerciseList model.exercises
+        , Components.exerciseList model.sheet model.exercises
         ]
 
 
@@ -200,7 +207,7 @@ renderSidebar model =
         [ h1 [] [ text "sidebar" ]
         , p []
             [ text "Count: "
-            , inContainer model
+            , model.sheet.list
                 |> List.length
                 |> toString
                 |> text

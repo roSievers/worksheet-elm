@@ -9,8 +9,9 @@ type Msg
     | UpdateText String
     | CreateExercise
     | DeleteExercise Int
-    | AddExercise Int
+    | AddExercise Exercise
     | RemoveExercise Int
     | SetRoute Route
     | LoadingFail Http.Error
-    | LoadingDone (List Exercise)
+    | SearchResultsArrived (List Exercise)
+    | SheetArrived (List Exercise)
