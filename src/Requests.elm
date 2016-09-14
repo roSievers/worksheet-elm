@@ -29,4 +29,4 @@ decodeExerciseList =
 requestExerciseList : (List Exercise -> Msg) -> String -> Cmd Msg
 requestExerciseList successMessage url =
     Http.get decodeExerciseList url
-        |> Task.perform (\x -> LoadingFail x) (\list -> successMessage list)
+        |> Task.perform LoadingFail successMessage

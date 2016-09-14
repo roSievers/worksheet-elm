@@ -3,6 +3,7 @@ module Events exposing (..)
 import Http
 import Route exposing (..)
 import Exercise exposing (..)
+import ExerciseSheet exposing (ExerciseSheet, LazySheet)
 
 
 type Msg
@@ -12,8 +13,10 @@ type Msg
     | SetRoute Route
     | LoadingFail Http.Error
     | SearchResultsArrived (List Exercise)
-    | SheetArrived (List Exercise)
+    | SheetArrived ExerciseSheet
     | ExerciseMessage ExerciseMsg
+    | SheetListArrived (List LazySheet)
+    | SetSheet LazySheet
 
 
 type ExerciseMsg

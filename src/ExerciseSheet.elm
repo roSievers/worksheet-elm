@@ -1,13 +1,62 @@
 module ExerciseSheet exposing (..)
 
+import Http
+import Json.Decode as Json exposing ((:=))
+import Task
 import Set exposing (Set)
 import List.Extra exposing (replaceIf, uniqueBy)
-
 import Exercise exposing (..)
+
 
 extractUID : Exercise -> Int
 extractUID exercise =
     exercise.uid
+
+
+{-| The LazySheet provides summary Information about a sheet like its name
+    and its uid. However the LazySheet is not fully loaded yet, in particular
+    the exercises are missing.
+-}
+type alias LazySheet =
+    { uid : Int
+    , title : String
+    }
+
+
+decodeExercise =
+    Json.object3 buildExercise
+        ("title" := Json.string)
+        ("text" := Json.string)
+        ("uid" := Json.int)
+
+
+decodeSheet : Json.Decoder ExerciseSheet
+decodeSheet =
+    decodeExerciseList
+
+
+decodeExerciseList =
+    Json.object1 fromList
+        ("exercises" := Json.list decodeExercise)
+
+
+decodeSheetList : Json.Decoder (List LazySheet)
+decodeSheetList =
+    "sheets"
+        := (Json.list
+                (Json.object2 LazySheet
+                    ("uid" := Json.int)
+                    ("title" := Json.string)
+                )
+           )
+
+
+load lsheet =
+    Http.get decodeSheet ("./api/sheet/" ++ toString lsheet.uid ++ ".json")
+
+
+loadSheetList =
+    Http.get decodeSheetList "./api/sheets.json"
 
 
 type alias ExerciseSheet =
@@ -60,3 +109,7 @@ member uid box =
 find : Int -> ExerciseSheet -> Maybe Exercise
 find uid box =
     List.Extra.find (extractUID >> ((==) uid)) box.list
+
+
+length : ExerciseSheet -> Int
+length box = List.length box.list

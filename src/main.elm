@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Task
 import Html exposing (..)
 import Html.Attributes exposing (class, type', placeholder, value, style)
 import Html.App as Html
@@ -10,7 +11,7 @@ import Route exposing (..)
 import Events exposing (..)
 import Exercise exposing (..)
 import Requests exposing (..)
-import ExerciseSheet exposing (ExerciseSheet)
+import ExerciseSheet exposing (ExerciseSheet, LazySheet)
 
 
 main =
@@ -33,7 +34,8 @@ type alias WithUID a =
 type alias Model =
     { route : Route
     , exercises : List Exercise
-    , sheet : ExerciseSheet
+    , sheet : Maybe ExerciseSheet
+    , sheets : Maybe (List LazySheet)
     , newExercise : Exercise
     , currentUID : Int
     }
@@ -41,15 +43,16 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model
-        Home
-        []
-        (ExerciseSheet.fromList [])
-        { blankExercise | uid = 1000 }
-        1001
+    ( { route = Home
+      , exercises = []
+      , sheet = Nothing
+      , sheets = Nothing
+      , newExercise = { blankExercise | uid = 1000 }
+      , currentUID = 1001
+      }
     , Cmd.batch
         [ requestExerciseList SearchResultsArrived "./data/search.json"
-        , requestExerciseList SheetArrived "./data/sheet.json"
+        , Task.perform LoadingFail SheetListArrived ExerciseSheet.loadSheetList
         ]
     )
 
@@ -103,7 +106,7 @@ update msg model =
 
         SheetArrived new ->
             ( { model
-                | sheet = ExerciseSheet.fromList new
+                | sheet = Just new
               }
             , Cmd.none
             )
@@ -111,20 +114,30 @@ update msg model =
         ExerciseMessage msg' ->
             updateExercise msg' model
 
+        SheetListArrived sheets ->
+            ( { model
+                | sheets = Just sheets
+              }
+            , Cmd.none
+            )
+
+        SetSheet lsheet ->
+            (model, Task.perform LoadingFail SheetArrived <| ExerciseSheet.load lsheet)
+
 
 updateExercise : ExerciseMsg -> Model -> ( Model, Cmd Msg )
 updateExercise msg model =
     case msg of
         AddExercise exercise ->
             ( { model
-                | sheet = ExerciseSheet.insert exercise model.sheet
+                | sheet = Maybe.map (ExerciseSheet.insert exercise) model.sheet
               }
             , Cmd.none
             )
 
         RemoveExercise uid ->
             ( { model
-                | sheet = ExerciseSheet.remove uid model.sheet
+                | sheet = Maybe.map (ExerciseSheet.remove uid) model.sheet
               }
             , Cmd.none
             )
@@ -172,20 +185,48 @@ view model =
                     ]
 
                 Home ->
-                    [ h1 [] [ text "Welcome" ]
-                    , p [] [ text "\"Choose\" a worksheet to edit:" ]
-                    , button [ onClick (SetRoute Sheet) ] [ text "The only Sheet." ]
+                    [ renderHomePanel model
                     ]
             )
         ]
 
 
+renderHomePanel : Model -> Html Msg
+renderHomePanel model =
+    case model.sheets of
+        Nothing ->
+            div []
+                [ h1 [] [ text "Welcome" ]
+                , p [] [ text "No Worksheets known." ]
+                ]
+
+        Just sheets ->
+            div [] <|
+                List.append
+                    [ h1 [] [ text "Welcome" ]
+                    , p [] [ text "Choose an execise sheet to work on" ]
+                    ]
+                    (List.map renderLoadSheetButton sheets)
+
+
+renderLoadSheetButton : LazySheet -> Html Msg
+renderLoadSheetButton lsheet =
+    button [ onClick (SetSheet lsheet) ] [ text lsheet.title ]
+
+
 renderSheetPanel : Model -> Html Msg
 renderSheetPanel model =
-    div [ class "main-pannel" ]
-        [ h1 [] [ text "Current Selection" ]
-        , Components.exerciseList model.sheet (model.sheet.list)
-        ]
+    case model.sheet of
+        Nothing ->
+            div [ class "main-pannel" ]
+                [ h1 [] [ text "No Exercise selected." ]
+                ]
+
+        Just sheet' ->
+            div [ class "main-pannel" ]
+                [ h1 [] [ text "Current Selection" ]
+                , Components.exerciseList model.sheet (sheet'.list)
+                ]
 
 
 renderMainPannel : Model -> Html Msg
@@ -205,11 +246,16 @@ renderSidebar : Model -> Html Msg
 renderSidebar model =
     div [ class "Sidebar" ]
         [ h1 [] [ text "sidebar" ]
-        , p []
-            [ text "Count: "
-            , model.sheet.list
-                |> List.length
-                |> toString
-                |> text
-            ]
+        , case model.sheet of
+            Nothing ->
+                p [] []
+
+            Just sheet' ->
+                p []
+                    [ text "Count: "
+                    , sheet'
+                        |> ExerciseSheet.length
+                        |> toString
+                        |> text
+                    ]
         ]

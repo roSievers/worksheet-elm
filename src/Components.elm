@@ -30,24 +30,34 @@ header model =
         ]
 
 
-exerciseList : ExerciseSheet -> List Exercise -> Html Msg
+exerciseList : Maybe ExerciseSheet -> List Exercise -> Html Msg
 exerciseList sheet exercises =
     Html.map ExerciseMessage <|
         div [ class "catalog" ] <|
             List.map (exerciseListItem sheet) exercises
 
 
-exerciseListItem : ExerciseSheet -> Exercise -> Html ExerciseMsg
+exerciseListItem : Maybe ExerciseSheet -> Exercise -> Html ExerciseMsg
 exerciseListItem sheet exercise =
     div [ class "summary" ]
         [ div []
             [ h1 [] [ text (exercise.title) ]
             , span [ class "summary-hints" ]
-                [ if ExerciseSheet.member exercise.uid sheet then
-                    button [ onClick (RemoveExercise exercise.uid) ] [ text "Remove Exercise" ]
-                  else
-                    button [ onClick (AddExercise exercise) ] [ text "Add Exercise" ]
+                [ maybeAddRemoveButton sheet exercise
                 ]
             , p [ class "summary-text" ] [ text exercise.text ]
             ]
         ]
+
+
+maybeAddRemoveButton : Maybe ExerciseSheet -> Exercise -> Html ExerciseMsg
+maybeAddRemoveButton sheet exercise =
+    case sheet of
+        Nothing ->
+            span [] []
+
+        Just sheet' ->
+            if ExerciseSheet.member exercise.uid sheet' then
+                button [ onClick (RemoveExercise exercise.uid) ] [ text "Remove Exercise" ]
+            else
+                button [ onClick (AddExercise exercise) ] [ text "Add Exercise" ]
