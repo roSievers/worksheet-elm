@@ -36,7 +36,8 @@ decodeSheet =
 
 
 decodeExerciseList =
-    Json.object1 fromList
+    Json.object2 fromList
+        ("title" := Json.string)
         ("exercises" := Json.list decodeExercise)
 
 
@@ -62,11 +63,12 @@ loadSheetList =
 type alias ExerciseSheet =
     { list : List Exercise
     , set : Set Int
+    , title : String
     }
 
 
-fromList : List Exercise -> ExerciseSheet
-fromList list =
+fromList : String -> List Exercise -> ExerciseSheet
+fromList title list =
     let
         list' =
             uniqueBy extractUID list
@@ -74,7 +76,7 @@ fromList list =
         set =
             Set.fromList <| List.map extractUID list'
     in
-        ExerciseSheet list set
+        ExerciseSheet list set title
 
 
 remove : Int -> ExerciseSheet -> ExerciseSheet
@@ -86,7 +88,10 @@ remove uid box =
         set =
             Set.remove uid box.set
     in
-        ExerciseSheet list set
+        { box
+            | list = list
+            , set = set
+        }
 
 
 insert : Exercise -> ExerciseSheet -> ExerciseSheet
@@ -96,9 +101,9 @@ insert element box =
             | list = replaceIf (extractUID >> ((==) element.uid)) element box.list
         }
     else
-        ExerciseSheet
-            (element :: box.list)
-            (Set.insert element.uid box.set)
+        { box
+            | list = (element :: box.list)
+            , set = (Set.insert element.uid box.set)}
 
 
 member : Int -> ExerciseSheet -> Bool
@@ -112,4 +117,5 @@ find uid box =
 
 
 length : ExerciseSheet -> Int
-length box = List.length box.list
+length box =
+    List.length box.list

@@ -17,6 +17,7 @@ type Msg
     | ExerciseMessage ExerciseMsg
     | SheetListArrived (List LazySheet)
     | SetSheet LazySheet
+    | CloseSheet
 
 
 type ExerciseMsg

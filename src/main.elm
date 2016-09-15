@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Task
+import Cmd.Extra
 import Html exposing (..)
 import Html.Attributes exposing (class, type', placeholder, value, style)
 import Html.App as Html
@@ -122,7 +123,17 @@ update msg model =
             )
 
         SetSheet lsheet ->
-            (model, Task.perform LoadingFail SheetArrived <| ExerciseSheet.load lsheet)
+            ( model, Task.perform LoadingFail SheetArrived <| ExerciseSheet.load lsheet )
+
+        CloseSheet ->
+            ( { model
+                | sheet = Nothing
+              }
+            , if model.route == Sheet then
+                Cmd.Extra.message (SetRoute Home)
+              else
+                Cmd.none
+            )
 
 
 updateExercise : ExerciseMsg -> Model -> ( Model, Cmd Msg )
@@ -219,12 +230,18 @@ renderSheetPanel model =
     case model.sheet of
         Nothing ->
             div [ class "main-pannel" ]
-                [ h1 [] [ text "No Exercise selected." ]
+                [ h1 [] [ text "No Sheet selected." ]
+                , button [ onClick (SetRoute Home) ] [ text "Return to landing Page." ]
                 ]
 
         Just sheet' ->
             div [ class "main-pannel" ]
-                [ h1 [] [ text "Current Selection" ]
+                [ h1 []
+                    [ text sheet'.title
+                    , span [ class "summary-hints" ]
+                        [ button [ onClick CloseSheet ] [ text "Close" ]
+                        ]
+                    ]
                 , Components.exerciseList model.sheet (sheet'.list)
                 ]
 

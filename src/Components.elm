@@ -18,7 +18,7 @@ header model =
         [ div [ style [ ( "background-color", "rgb(238, 238, 238)" ) ] ]
             [ div [ class "center", style [ ( "padding", "10px 0" ) ] ]
                 [ button [ onClick (SetRoute Home) ] [ text "Home" ]
-                , button [ onClick (SetRoute Sheet) ] [ text "Worksheet" ]
+                , currentSheetButton model.sheet
                 , button [ onClick (SetRoute Search) ] [ text "Search" ]
                 ]
             ]
@@ -28,6 +28,16 @@ header model =
                 ]
             ]
         ]
+
+
+currentSheetButton : Maybe ExerciseSheet -> Html Msg
+currentSheetButton sheet =
+    case sheet of
+        Nothing ->
+            span [] []
+
+        Just sheet' ->
+            button [ onClick (SetRoute Sheet) ] [ text sheet'.title ]
 
 
 exerciseList : Maybe ExerciseSheet -> List Exercise -> Html Msg
