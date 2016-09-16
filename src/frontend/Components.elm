@@ -37,24 +37,25 @@ currentSheetButton sheet =
             span [] []
 
         Just sheet' ->
-            button [ onClick (SetRoute Sheet) ] [ text sheet'.title ]
+            button [ onClick (SetRoute Current) ] [ text sheet'.title ]
 
 
 exerciseList : Maybe ExerciseSheet -> List Exercise -> Html Msg
 exerciseList sheet exercises =
-    Html.map ExerciseMessage <|
-        div [ class "catalog" ] <|
-            List.map (exerciseListItem sheet) exercises
+    div [ class "catalog" ] <|
+        List.map (exerciseListItem sheet) exercises
 
 
-exerciseListItem : Maybe ExerciseSheet -> Exercise -> Html ExerciseMsg
+exerciseListItem : Maybe ExerciseSheet -> Exercise -> Html Msg
 exerciseListItem sheet exercise =
     div [ class "summary" ]
         [ div []
-            [ h1 [] [ text (exercise.title) ]
-            , span [ class "summary-hints" ]
-                [ maybeAddRemoveButton sheet exercise
-                ]
+            [ h1 [ onClick (SetRoute (SingleExercise exercise)) ] [ text (exercise.title) ]
+            , Html.map ExerciseMessage
+                (span [ class "summary-hints" ]
+                    [ maybeAddRemoveButton sheet exercise
+                    ]
+                )
             , p [ class "summary-text" ] [ text exercise.text ]
             ]
         ]

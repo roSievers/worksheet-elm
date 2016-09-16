@@ -6,18 +6,20 @@ import Exercise exposing (..)
 import ExerciseSheet exposing (ExerciseSheet, LazySheet)
 
 
-type Msg
+type EEditorMsg
     = UpdateTitle String
     | UpdateText String
     | CreateExercise
+
+type Msg
+    = ExerciseEditor EEditorMsg
     | SetRoute Route
     | LoadingFail Http.Error
     | SearchResultsArrived (List Exercise)
     | SheetArrived ExerciseSheet
-    | ExerciseMessage ExerciseMsg
     | SheetListArrived (List LazySheet)
-    | SetSheet LazySheet
-    | CloseSheet
+    | ExerciseMessage ExerciseMsg
+    | SetSheet (Maybe LazySheet)
 
 
 type ExerciseMsg
