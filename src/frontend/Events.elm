@@ -20,6 +20,7 @@ type Msg
     | SheetListArrived (List LazySheet)
     | ExerciseMessage ExerciseMsg
     | SetSheet (Maybe LazySheet)
+    | NewExercise Exercise
 
 
 type ExerciseMsg

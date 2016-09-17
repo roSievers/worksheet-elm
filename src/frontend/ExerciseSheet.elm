@@ -23,13 +23,6 @@ type alias LazySheet =
     }
 
 
-decodeExercise =
-    Json.object3 buildExercise
-        ("title" := Json.string)
-        ("text" := Json.string)
-        ("uid" := Json.int)
-
-
 decodeSheet : Json.Decoder ExerciseSheet
 decodeSheet =
     decodeExerciseList
@@ -53,11 +46,11 @@ decodeSheetList =
 
 
 load lsheet =
-    Http.get decodeSheet ("./api/sheet/" ++ toString lsheet.uid ++ ".json")
+    Http.get decodeSheet ("http://localhost:8010/api/sheet/" ++ toString lsheet.uid)
 
 
 loadSheetList =
-    Http.get decodeSheetList "./api/sheets.json"
+    Http.get decodeSheetList "http://localhost:8010/api/sheets"
 
 
 type alias ExerciseSheet =

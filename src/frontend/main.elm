@@ -37,7 +37,6 @@ type alias Model =
     , exercises : List Exercise
     , sheet : Maybe ExerciseSheet
     , sheets : Maybe (List LazySheet)
-    , newExercise : Exercise
     , currentUID : Int
     }
 
@@ -48,7 +47,6 @@ init =
       , exercises = []
       , sheet = Nothing
       , sheets = Nothing
-      , newExercise = { blankExercise | uid = 1000 }
       , currentUID = 1001
       }
     , Cmd.batch
@@ -117,6 +115,13 @@ update msg model =
                 Just lsheet' ->
                     ( model, Task.perform LoadingFail SheetArrived <| ExerciseSheet.load lsheet' )
 
+        NewExercise exercise ->
+            ( { model
+                | sheet = Maybe.map (ExerciseSheet.insert exercise) model.sheet
+              }
+            , Cmd.none
+            )
+
 
 updateExercise : ExerciseMsg -> Model -> ( Model, Cmd Msg )
 updateExercise msg model =
@@ -138,29 +143,22 @@ updateExercise msg model =
 
 updateEEditor : EEditorMsg -> Model -> ( Model, Cmd Msg )
 updateEEditor msg model =
-    case msg of
-        UpdateTitle title ->
-            let
-                oldExercise =
-                    model.newExercise
-            in
-                ( { model | newExercise = { oldExercise | title = title } }, Cmd.none )
+    case model.route of
+        SingleExercise exercise ->
+            case msg of
+                UpdateTitle title ->
+                    ( { model | route = SingleExercise { exercise | title = title } }, Cmd.none )
 
-        UpdateText text ->
-            let
-                oldExercise =
-                    model.newExercise
-            in
-                ( { model | newExercise = { oldExercise | text = text } }, Cmd.none )
+                UpdateText text ->
+                    ( { model | route = SingleExercise { exercise | text = text } }, Cmd.none )
 
-        CreateExercise ->
-            ( { model
-                | newExercise = { blankExercise | uid = model.currentUID }
-                , exercises = model.newExercise :: model.exercises
-                , currentUID = model.currentUID + 1
-              }
-            , Cmd.none
-            )
+                CreateExercise ->
+                    ( { model | route = SingleExercise blankExercise }
+                    , Task.perform LoadingFail NewExercise (Exercise.updateExercise exercise)
+                    )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 mapOnUID : Int -> (WithUID a -> WithUID a) -> List (WithUID a) -> List (WithUID a)
@@ -209,14 +207,29 @@ view model =
                     ]
 
                 SingleExercise exercise ->
-                    [ div [ class "main-pannel" ]
-                        [ h1 [] [ text exercise.title ]
-                        , p [] [ text exercise.text ]
-                        ]
+                    [ renderSingleExercise exercise
                     , renderSidebar model
                     ]
             )
         ]
+
+
+renderSingleExercise : Exercise -> Html Msg
+renderSingleExercise exercise =
+    div [ class "main-pannel" ]
+        [ input [ type' "text", placeholder "Title", onInput (ExerciseEditor << UpdateTitle), value exercise.title ] []
+        , input [ type' "text", placeholder "Text", onInput (ExerciseEditor << UpdateText), value exercise.text ] []
+        , button [ onClick (ExerciseEditor CreateExercise) ] [ text "Add to List" ]
+        ]
+
+
+
+{- , div []
+   [ input [ type' "text", placeholder "Title", onInput (ExerciseEditor << UpdateTitle), value model.newExercise.title ] []
+   , input [ type' "text", placeholder "Text", onInput (ExerciseEditor << UpdateText), value model.newExercise.text ] []
+   , button [ onClick (ExerciseEditor CreateExercise) ] [ text "Add to List" ]
+   ]
+-}
 
 
 renderHomePanel : Model -> Html Msg
@@ -267,11 +280,6 @@ renderMainPannel : Model -> Html Msg
 renderMainPannel model =
     div [ class "main-pannel" ]
         [ h1 [] [ text "All Exercises" ]
-        , div []
-            [ input [ type' "text", placeholder "Title", onInput (ExerciseEditor << UpdateTitle), value model.newExercise.title ] []
-            , input [ type' "text", placeholder "Text", onInput (ExerciseEditor << UpdateText), value model.newExercise.text ] []
-            , button [ onClick (ExerciseEditor CreateExercise) ] [ text "Add to List" ]
-            ]
         , Components.exerciseList model.sheet model.exercises
         ]
 
