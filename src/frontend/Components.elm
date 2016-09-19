@@ -10,9 +10,8 @@ import Exercise exposing (..)
 import ExerciseSheet exposing (ExerciseSheet)
 
 
---Header : Model -> Html Msg
-
-
+{-| header : Model -> Html Msg
+-}
 header model =
     div []
         [ div [ style [ ( "background-color", "rgb(238, 238, 238)" ) ] ]
@@ -38,6 +37,22 @@ currentSheetButton sheet =
 
         Just sheet' ->
             button [ onClick (SetRoute Current) ] [ text sheet'.title ]
+
+
+mainWithSidebar : List (Html msg) -> List (Html msg) -> Html msg
+mainWithSidebar main sidebar =
+    div [ class "center" ]
+        [ div [ class "main-pannel" ]
+            main
+        , div [ class "Sidebar" ]
+            sidebar
+        ]
+
+
+mainFullWidth : List (Html msg) -> Html msg
+mainFullWidth main =
+    div [ class "center" ]
+        main
 
 
 exerciseList : Maybe ExerciseSheet -> List Exercise -> Html Msg
