@@ -190,64 +190,46 @@ view : Model -> Html Msg
 view model =
     div []
         [ Components.header model
-        , div [ class "center" ]
-            (case model.route of
-                Search ->
-                    [ renderMainPannel model
-                    , renderSidebar model
-                    ]
+        , case model.route of
+            Search ->
+                renderMainPannel model
 
-                Current ->
-                    [ renderSheetPanel model
-                    , renderSidebar model
-                    ]
+            Current ->
+                renderSheetPanel model
 
-                Home ->
-                    [ renderHomePanel model
-                    ]
+            Home ->
+                renderHomePanel model
 
-                SingleExercise exercise ->
-                    [ renderSingleExercise exercise
-                    , renderSidebar model
-                    ]
-            )
+            SingleExercise exercise ->
+                renderSingleExercise model exercise
         ]
 
 
-renderSingleExercise : Exercise -> Html Msg
-renderSingleExercise exercise =
-    div [ class "main-pannel" ]
+renderSingleExercise : Model -> Exercise -> Html Msg
+renderSingleExercise model exercise =
+    Components.mainFullWidth
         [ input [ type' "text", placeholder "Title", onInput (ExerciseEditor << UpdateTitle), value exercise.title ] []
         , input [ type' "text", placeholder "Text", onInput (ExerciseEditor << UpdateText), value exercise.text ] []
         , button [ onClick (ExerciseEditor CreateExercise) ] [ text "Add to List" ]
         ]
 
 
-
-{- , div []
-   [ input [ type' "text", placeholder "Title", onInput (ExerciseEditor << UpdateTitle), value model.newExercise.title ] []
-   , input [ type' "text", placeholder "Text", onInput (ExerciseEditor << UpdateText), value model.newExercise.text ] []
-   , button [ onClick (ExerciseEditor CreateExercise) ] [ text "Add to List" ]
-   ]
--}
-
-
 renderHomePanel : Model -> Html Msg
 renderHomePanel model =
-    case model.sheets of
-        Nothing ->
-            div []
+    Components.mainFullWidth
+        (case model.sheets of
+            Nothing ->
                 [ h1 [] [ text "Welcome" ]
                 , p [] [ text "No Worksheets known." ]
                 ]
 
-        Just sheets ->
-            div [] <|
+            Just sheets ->
                 List.append
                     [ h1 [] [ text "Welcome" ]
                     , p [] [ text "Choose an execise sheet to work on" ]
                     ]
                     (List.map renderLoadSheetButton sheets)
+        )
 
 
 renderLoadSheetButton : LazySheet -> Html Msg
@@ -259,13 +241,13 @@ renderSheetPanel : Model -> Html Msg
 renderSheetPanel model =
     case model.sheet of
         Nothing ->
-            div [ class "main-pannel" ]
+            Components.mainFullWidth
                 [ h1 [] [ text "No Sheet selected." ]
                 , button [ onClick (SetRoute Home) ] [ text "Return to landing Page." ]
                 ]
 
         Just sheet' ->
-            div [ class "main-pannel" ]
+            Components.mainWithSidebar
                 [ h1 []
                     [ text sheet'.title
                     , span [ class "summary-hints" ]
@@ -274,30 +256,30 @@ renderSheetPanel model =
                     ]
                 , Components.exerciseList model.sheet (sheet'.list)
                 ]
+                (sheetSummarySidebar model)
 
 
 renderMainPannel : Model -> Html Msg
 renderMainPannel model =
-    div [ class "main-pannel" ]
+    Components.mainFullWidth
         [ h1 [] [ text "All Exercises" ]
         , Components.exerciseList model.sheet model.exercises
         ]
 
 
-renderSidebar : Model -> Html Msg
-renderSidebar model =
-    div [ class "Sidebar" ]
-        [ h1 [] [ text "sidebar" ]
-        , case model.sheet of
-            Nothing ->
-                p [] []
+sheetSummarySidebar : Model -> List (Html Msg)
+sheetSummarySidebar model =
+    [ h1 [] [ text "sidebar" ]
+    , case model.sheet of
+        Nothing ->
+            p [] []
 
-            Just sheet' ->
-                p []
-                    [ text "Count: "
-                    , sheet'
-                        |> ExerciseSheet.length
-                        |> toString
-                        |> text
-                    ]
-        ]
+        Just sheet' ->
+            p []
+                [ text "Count: "
+                , sheet'
+                    |> ExerciseSheet.length
+                    |> toString
+                    |> text
+                ]
+    ]
