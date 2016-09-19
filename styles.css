@@ -16,6 +16,7 @@ p {
 
 h1, h2, h3, h4 {
     font-weight: normal;
+    display: inline-block;
 }
 
 .summary {
@@ -57,4 +58,16 @@ h1, h2, h3, h4 {
     padding: 20px;
     margin: 20px 20px 20px 40px;
     border-left: 1px solid #eeeeee;
+}
+
+.edit-p {
+  display: block;
+  width: 100%;
+}
+
+.edit-h1 {
+    font-size : 200%;
+    display: block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
 }

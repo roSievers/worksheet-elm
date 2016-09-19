@@ -208,8 +208,9 @@ view model =
 renderSingleExercise : Model -> Exercise -> Html Msg
 renderSingleExercise model exercise =
     Components.mainFullWidth
-        [ input [ type' "text", placeholder "Title", onInput (ExerciseEditor << UpdateTitle), value exercise.title ] []
-        , input [ type' "text", placeholder "Text", onInput (ExerciseEditor << UpdateText), value exercise.text ] []
+        [ input [ type' "text", placeholder "Title", onInput (ExerciseEditor << UpdateTitle), value exercise.title, class "edit-h1" ] []
+        , textarea [ placeholder "Text", onInput (ExerciseEditor << UpdateText), value exercise.text, class "edit-p" ] []
+        , br [] []
         , button [ onClick (ExerciseEditor CreateExercise) ] [ text "Add to List" ]
         ]
 
@@ -248,11 +249,9 @@ renderSheetPanel model =
 
         Just sheet' ->
             Components.mainWithSidebar
-                [ h1 []
-                    [ text sheet'.title
-                    , span [ class "summary-hints" ]
-                        [ button [ onClick (SetSheet Nothing) ] [ text "Close" ]
-                        ]
+                [ h1 [] [ text sheet'.title ]
+                , span [ class "summary-hints" ]
+                    [ button [ onClick (SetSheet Nothing) ] [ text "Close" ]
                     ]
                 , Components.exerciseList model.sheet (sheet'.list)
                 ]
@@ -269,7 +268,7 @@ renderMainPannel model =
 
 sheetSummarySidebar : Model -> List (Html Msg)
 sheetSummarySidebar model =
-    [ h1 [] [ text "sidebar" ]
+    [ h1 [] [ text "Overview" ]
     , case model.sheet of
         Nothing ->
             p [] []
