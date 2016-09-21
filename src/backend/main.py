@@ -27,6 +27,24 @@ def getExercise(uid):
 
     return exercise
 
+def parseInputJSON(req, legalKeys, maxSize=4096):
+    rawInput = req.stream.read(maxSize).decode("utf-8")
+    overflow = req.stream.read(1)
+    if overflow:
+        # 413 Payload Too Large
+        raise falcon.HTTPError(
+            falcon.HTTP_413, title="File exceeds size limit.")
+    rawJson = json.loads(rawInput)
+
+    filteredJson = {}
+    for legalKey in legalKeys:
+        try:
+            filteredJson[legalKey] = rawJson[legalKey]
+        except KeyError:
+            raise falcon.HTTPError(
+                falcon.HTTP_422, title="Missing field.")
+
+    return filteredJson
 
 class ExerciseResource:
 
@@ -36,28 +54,12 @@ class ExerciseResource:
 
     @falcon.before(uidAsInt)
     def on_post(self, req, resp, uid):
-        # TODO: verify mimetype
+        exercise = parseInputJSON(req, legalKeys=['title', 'text'])
 
-        inputJson = req.stream.read(4096).decode("utf-8")
-        overflow = req.stream.read(1)
-        if overflow:
-            # 413 Payload Too Large
-            raise falcon.HTTPError(
-                falcon.HTTP_413, title="File exceeds size limit.")
-        exercise = json.loads(inputJson)
-
-        updateDict = {legalKey: exercise[legalKey]
-                      for legalKey in ['title', 'text']}
         if uid == -1:
-            if 'title' not in updateDict:
-                raise falcon.HTTPError(
-                    falcon.HTTP_422, title="Missing 'title' field.")
-            if 'text' not in updateDict:
-                raise falcon.HTTPError(
-                    falcon.HTTP_422, title="Missing 'text' field.")
-            uid = exercises.insert(updateDict)
+            uid = exercises.insert(exercise)
         else:
-            exercises.update(updateDict, eids=[uid])
+            exercises.update(exercise, eids=[uid])
 
         resp.body = json.dumps(getExercise(uid))
         resp.status = falcon.HTTP_201
@@ -74,6 +76,24 @@ class SheetResource:
 
         resp.body = json.dumps(sheet)
 
+"""
+    @falcon.before(uidAsInt)
+    def on_post(self, req, resp, uid):
+        sheet = parseInputJSON(req, legalKeys=['title', 'content'])
+
+        if uid == -1:
+            uid = sheets.insert(sheet)
+        else:
+            sheets.update(sheet, eids=[uid])
+
+        sheet = sheets.get(eid=uid)
+        sheet["exercises"] = list(map(
+            lambda eid: getExercise(eid),
+            sheet["content"]))
+
+        resp.body = json.dumps(sheet)
+        resp.status = falcon.HTTP_201
+"""
 
 class SheetListResource:
 
