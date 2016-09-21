@@ -8,7 +8,8 @@ import Route exposing (..)
 import Events exposing (..)
 import Exercise exposing (..)
 import ExerciseSheet exposing (ExerciseSheet)
-
+import FontAwesome exposing (..)
+import Icons as Fa
 
 {-| header : Model -> Html Msg
 -}
@@ -16,9 +17,9 @@ header model =
     div []
         [ div [ style [ ( "background-color", "rgb(238, 238, 238)" ) ] ]
             [ div [ class "center", style [ ( "padding", "10px 0" ) ] ]
-                [ button [ onClick (SetRoute Home) ] [ text "Home" ]
+                [ button [ onClick (SetRoute Home) ] [ text " Home" ]
                 , currentSheetButton model.sheet
-                , button [ onClick (SetRoute Search) ] [ text "Search" ]
+                , button [ onClick (SetRoute Search) ] [ icon Fa.search, text " Search" ]
                 ]
             ]
         , div [ style [ ( "background-color", "rgb(96,181,204)" ) ] ]
@@ -36,7 +37,7 @@ currentSheetButton sheet =
             span [] []
 
         Just sheet' ->
-            button [ onClick (SetRoute Current) ] [ text sheet'.title ]
+            button [ onClick (SetRoute Current) ] [ icon Fa.list, text " ", text sheet'.title ]
 
 
 mainWithSidebar : List (Html msg) -> List (Html msg) -> Html msg
@@ -84,6 +85,6 @@ maybeAddRemoveButton sheet exercise =
 
         Just sheet' ->
             if ExerciseSheet.member exercise.uid sheet' then
-                button [ onClick (RemoveExercise exercise.uid) ] [ text "Remove Exercise" ]
+                button [ onClick (RemoveExercise exercise.uid) ] [ Fa.close |> large |> icon ]
             else
-                button [ onClick (AddExercise exercise) ] [ text "Add Exercise" ]
+                button [ onClick (AddExercise exercise) ] [ Fa.plus |> large |> icon ]

@@ -13,6 +13,8 @@ import Events exposing (..)
 import Exercise exposing (..)
 import Requests exposing (..)
 import ExerciseSheet exposing (ExerciseSheet, LazySheet)
+import FontAwesome exposing (..)
+import Icons as Fa
 
 
 main =
