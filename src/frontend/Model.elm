@@ -29,7 +29,7 @@ init =
       , currentUID = 1001
       }
     , Cmd.batch
-        [ requestExerciseList SearchResultsArrived "./data/search.json"
+        [ requestExerciseList SearchResultsArrived "http://localhost:8010/api/deprecated/exercises"
         , Task.perform LoadingFail SheetListArrived ExerciseSheet.loadSheetList
         ]
     )

@@ -107,9 +107,21 @@ class SheetListResource:
         resp.body = json.dumps(allSheets)
 
 
+class AllExercisesResource:
+
+    def on_get(self, req, resp):
+        allExercises = {"exercises": exercises.all()}
+
+        for s in allExercises["exercises"]:
+            s["uid"] = s.eid
+
+        resp.body = json.dumps(allExercises)
+
+
 cors = CORS(allow_all_origins=True, allow_all_methods=True)
 api = falcon.API(middleware=[cors.middleware])
 
 api.add_route('/api/exercise/{uid}', ExerciseResource())
+api.add_route('/api/deprecated/exercises', AllExercisesResource())
 api.add_route('/api/sheet/{uid}', SheetResource())
 api.add_route('/api/sheets', SheetListResource())
