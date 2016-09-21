@@ -21,21 +21,21 @@ view model =
         [ Components.header model
         , case model.route of
             Search ->
-                renderMainPannel model
+                mainPanel model
 
             Current ->
-                renderSheetPanel model
+                sheetPanel model
 
             Home ->
-                renderHomePanel model
+                homePanel model
 
             SingleExercise exercise ->
-                renderSingleExercise model exercise
+                singleExercise model exercise
         ]
 
 
-renderSingleExercise : Model -> Exercise -> Html Msg
-renderSingleExercise model exercise =
+singleExercise : Model -> Exercise -> Html Msg
+singleExercise model exercise =
     Components.mainFullWidth
         [ input [ type' "text", placeholder "Title", onInput (ExerciseEditor << UpdateTitle), value exercise.title, class "edit-h1" ] []
         , textarea [ placeholder "Text", onInput (ExerciseEditor << UpdateText), value exercise.text, class "edit-p" ] []
@@ -44,8 +44,8 @@ renderSingleExercise model exercise =
         ]
 
 
-renderHomePanel : Model -> Html Msg
-renderHomePanel model =
+homePanel : Model -> Html Msg
+homePanel model =
     Components.mainFullWidth
         (case model.sheets of
             Nothing ->
@@ -58,17 +58,17 @@ renderHomePanel model =
                     [ h1 [] [ text "Welcome" ]
                     , p [] [ text "Choose an execise sheet to work on" ]
                     ]
-                    (List.map renderLoadSheetButton sheets)
+                    (List.map loadSheetButton sheets)
         )
 
 
-renderLoadSheetButton : LazySheet -> Html Msg
-renderLoadSheetButton lsheet =
+loadSheetButton : LazySheet -> Html Msg
+loadSheetButton lsheet =
     button [ onClick (SetSheet (Just lsheet)) ] [ text lsheet.title ]
 
 
-renderSheetPanel : Model -> Html Msg
-renderSheetPanel model =
+sheetPanel : Model -> Html Msg
+sheetPanel model =
     case model.sheet of
         Nothing ->
             Components.mainFullWidth
@@ -87,8 +87,8 @@ renderSheetPanel model =
                 (sheetSummarySidebar model)
 
 
-renderMainPannel : Model -> Html Msg
-renderMainPannel model =
+mainPanel : Model -> Html Msg
+mainPanel model =
     Components.mainFullWidth
         [ h1 [] [ text "All Exercises" ]
         , Components.exerciseList model.sheet model.exercises
