@@ -11,6 +11,10 @@ import ExerciseSheet exposing (ExerciseSheet)
 import FontAwesome exposing (..)
 import Icons as Fa
 
+
+type alias Decorator a = a -> Html Msg
+
+
 {-| header : Model -> Html Msg
 -}
 header model =
@@ -56,35 +60,20 @@ mainFullWidth main =
         main
 
 
-exerciseList : Maybe ExerciseSheet -> List Exercise -> Html Msg
-exerciseList sheet exercises =
+exerciseList : Decorator Exercise -> List Exercise -> Html Msg
+exerciseList decorator exercises =
     div [ class "catalog" ] <|
-        List.map (exerciseListItem sheet) exercises
+        List.map (exerciseListItem decorator) exercises
 
 
-exerciseListItem : Maybe ExerciseSheet -> Exercise -> Html Msg
-exerciseListItem sheet exercise =
+exerciseListItem : Decorator Exercise -> Exercise -> Html Msg
+exerciseListItem decorator exercise =
     div [ class "summary" ]
         [ div []
             [ h1 [ onClick (SetRoute (SingleExercise exercise)) ] [ text (exercise.title) ]
-            , Html.map ExerciseMessage
-                (span [ class "summary-hints" ]
-                    [ maybeAddRemoveButton sheet exercise
-                    ]
-                )
+            , span [ class "summary-hints" ]
+                [ decorator exercise
+                ]
             , p [ class "summary-text" ] [ text exercise.text ]
             ]
         ]
-
-
-maybeAddRemoveButton : Maybe ExerciseSheet -> Exercise -> Html ExerciseMsg
-maybeAddRemoveButton sheet exercise =
-    case sheet of
-        Nothing ->
-            span [] []
-
-        Just sheet' ->
-            if ExerciseSheet.member exercise.uid sheet' then
-                button [ onClick (RemoveExercise exercise.uid) ] [ Fa.close |> large |> icon ]
-            else
-                button [ onClick (AddExercise exercise) ] [ Fa.plus |> large |> icon ]

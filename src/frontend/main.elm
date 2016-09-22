@@ -23,4 +23,4 @@ main =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every (5*Time.second) (\_ -> SheetMessage AutosaveTick)
+    Time.every (3*Time.second) (\_ -> SheetMessage AutosaveTick)

@@ -3,7 +3,7 @@ module View exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (class, type', placeholder, value, style)
 import Html.Events exposing (..)
-import Components
+import Components exposing (Decorator)
 import Events exposing (..)
 import Exercise exposing (Exercise)
 import ExerciseSheet exposing (ExerciseSheet, LazySheet, SyncState(..))
@@ -22,10 +22,12 @@ view model =
         [ Components.header model
         , case model.route of
             Search ->
-                mainPanel model
+                searchPanel model
 
             Current ->
-                sheetPanel model
+                model.sheet
+                    |> Maybe.map (\sheet -> sheetPanel model sheet)
+                    |> Maybe.withDefault illegalRoute
 
             Home ->
                 homePanel model
@@ -68,72 +70,100 @@ loadSheetButton lsheet =
     button [ onClick (SetSheet (Just lsheet)) ] [ text lsheet.title ]
 
 
-sheetPanel : Model -> Html Msg
-sheetPanel model =
-    case model.sheet of
-        Nothing ->
-            Components.mainFullWidth
-                [ h1 [] [ text "No Sheet selected." ]
-                , button [ onClick (SetRoute Home) ] [ text "Return to landing Page." ]
-                ]
-
-        Just sheet' ->
-            Components.mainWithSidebar
-                [ h1 [] [ text sheet'.title ]
-                , span [ class "summary-hints" ]
-                    [ button [ onClick (SetSheet Nothing) ] [ text "Close" ]
-                    ]
-                , Components.exerciseList model.sheet (sheet'.list)
-                ]
-                (sheetSummarySidebar model)
+sheetPanel : Model -> ExerciseSheet -> Html Msg
+sheetPanel model sheet =
+    Components.mainWithSidebar
+        [ h1 [] [ text sheet.title ]
+        , span [ class "summary-hints" ]
+            [ button [ onClick (SetSheet Nothing) ] [ text "Close" ]
+            ]
+        , Components.exerciseList (addRemoveDecorator sheet) (sheet.list)
+        ]
+        (sheetSummarySidebar model sheet)
 
 
-mainPanel : Model -> Html Msg
-mainPanel model =
+addRemoveDecorator : ExerciseSheet -> Decorator Exercise
+addRemoveDecorator sheet exercise =
+    if ExerciseSheet.member exercise.uid sheet then
+        button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)) ] [ Fa.close |> large |> icon ]
+    else
+        button [ onClick (ExerciseMessage (AddExercise exercise)) ] [ Fa.plus |> large |> icon ]
+
+
+emptyDecorator : Decorator Exercise
+emptyDecorator _ =
+    span [] []
+
+
+searchPanel : Model -> Html Msg
+searchPanel model =
     Components.mainFullWidth
         [ h1 [] [ text "All Exercises" ]
-        , Components.exerciseList model.sheet model.exercises
+        , Components.exerciseList
+            (model.sheet
+                |> Maybe.map addRemoveDecorator
+                |> Maybe.withDefault emptyDecorator
+            )
+            model.exercises
         ]
 
 
-sheetSummarySidebar : Model -> List (Html Msg)
-sheetSummarySidebar model =
-    [ h1 [] [ text "Overview" ]
-    , case model.sheet of
-        Nothing ->
-            p [] []
-
-        Just sheet' ->
-            p []
-                [ text "Count: "
-                , sheet'
-                    |> ExerciseSheet.length
-                    |> toString
-                    |> text
-                , br [] []
-                , syncState sheet'.syncState
-                ]
+sheetSummarySidebar : Model -> ExerciseSheet -> List (Html Msg)
+sheetSummarySidebar model sheet =
+    [ h3 [] [ text "Tools" ]
+    , p []
+        [ syncState sheet
+        , br [] []
+        , text "Count: "
+        , sheet
+            |> ExerciseSheet.length
+            |> toString
+            |> text
+        , br [] []
+        ]
     ]
 
 
-syncState : ExerciseSheet.SyncState -> Html Msg
-syncState sync =
-    text <|
-        case sync of
-            UpToDate ->
-                "UpToDaye"
+syncState : ExerciseSheet -> Html Msg
+syncState sheet =
+    case sheet.syncState of
+        UpToDate ->
+            span []
+                [ icon Fa.check
+                , text " Saved"
+                ]
 
-            Delayed ->
-                "Delayed"
+        Delayed ->
+            span []
+                [ icon Fa.floppy_o
+                , text " Unsaved Changes"
+                ]
 
-            ReadyToSync ->
-                "ReadyToSync"
+        ReadyToSync ->
+            span []
+                [ icon Fa.floppy_o
+                , text " Unsaved Changes"
+                ]
 
-            Syncing ->
-                "Syncing"
+        Syncing ->
+            span []
+                [ icon (spinning Fa.refresh)
+                , text " Saving..."
+                ]
 
-            SyncingOutdated ->
-                "Syncing"
+        SyncingOutdated ->
+            span []
+                [ icon (spinning Fa.refresh)
+                , text " Saving..."
+                ]
 
-            SyncError ->
-                "Error"
+        SyncError ->
+            span []
+                [ icon Fa.exclamation
+                , text " Error while saving."
+                ]
+
+
+illegalRoute : Html Msg
+illegalRoute =
+    text "Error: This Page should not exist."
