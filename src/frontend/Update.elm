@@ -65,10 +65,55 @@ update msg model =
                 Just lsheet' ->
                     ( model, Task.perform LoadingFail SheetArrived <| ExerciseSheet.load lsheet' )
 
+        SheetMessage msg ->
+            case model.sheet of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just sheet ->
+                    let
+                        ( newSheet, command ) =
+                            updateSheet msg sheet
+                    in
+                        ( { model
+                            | sheet = Just newSheet
+                          }
+                        , command
+                        )
+
+        Save sheet ->
+            ( model
+            , Task.perform LoadingFail (\_ -> SheetMessage SaveDone) (ExerciseSheet.update sheet)
+            )
+
+
+updateSheet : SheetMsg -> ExerciseSheet -> ( ExerciseSheet, Cmd Msg )
+updateSheet msg sheet =
+    case msg of
         NewExercise exercise ->
-            ( { model
-                | sheet = Maybe.map (ExerciseSheet.insert exercise) model.sheet
-              }
+            ( ExerciseSheet.insert exercise sheet
+            , Cmd.none
+            )
+
+        DirtySheet ->
+            ( ExerciseSheet.dirty sheet
+            , Cmd.none
+            )
+
+        AutosaveTick ->
+            let
+                ( newSheet, doSave ) =
+                    ExerciseSheet.autosaveTick sheet
+            in
+                ( newSheet
+                , if doSave then
+                    Cmd.Extra.message (Save newSheet)
+                  else
+                    Cmd.none
+                )
+
+        SaveDone ->
+            ( ExerciseSheet.saveDone sheet
             , Cmd.none
             )
 
@@ -80,14 +125,14 @@ updateExercise msg model =
             ( { model
                 | sheet = Maybe.map (ExerciseSheet.insert exercise) model.sheet
               }
-            , Cmd.none
+            , Cmd.Extra.message (SheetMessage DirtySheet)
             )
 
         RemoveExercise uid ->
             ( { model
                 | sheet = Maybe.map (ExerciseSheet.remove uid) model.sheet
               }
-            , Cmd.none
+            , Cmd.Extra.message (SheetMessage DirtySheet)
             )
 
 
@@ -104,7 +149,7 @@ updateEEditor msg model =
 
                 CreateExercise ->
                     ( { model | route = SingleExercise blankExercise }
-                    , Task.perform LoadingFail NewExercise (Exercise.updateExercise exercise)
+                    , Task.perform LoadingFail (NewExercise >> SheetMessage) (Exercise.updateExercise exercise)
                     )
 
         _ ->

@@ -27,6 +27,7 @@ def getExercise(uid):
 
     return exercise
 
+
 def parseInputJSON(req, legalKeys, maxSize=4096):
     rawInput = req.stream.read(maxSize).decode("utf-8")
     overflow = req.stream.read(1)
@@ -45,6 +46,7 @@ def parseInputJSON(req, legalKeys, maxSize=4096):
                 falcon.HTTP_422, title="Missing field.")
 
     return filteredJson
+
 
 class ExerciseResource:
 
@@ -73,10 +75,10 @@ class SheetResource:
         sheet["exercises"] = list(map(
             lambda eid: getExercise(eid),
             sheet["content"]))
+        sheet["uid"] = uid
 
         resp.body = json.dumps(sheet)
 
-"""
     @falcon.before(uidAsInt)
     def on_post(self, req, resp, uid):
         sheet = parseInputJSON(req, legalKeys=['title', 'content'])
@@ -86,14 +88,9 @@ class SheetResource:
         else:
             sheets.update(sheet, eids=[uid])
 
-        sheet = sheets.get(eid=uid)
-        sheet["exercises"] = list(map(
-            lambda eid: getExercise(eid),
-            sheet["content"]))
-
-        resp.body = json.dumps(sheet)
+        resp.body = json.dumps({"status": "ok"})
         resp.status = falcon.HTTP_201
-"""
+
 
 class SheetListResource:
 

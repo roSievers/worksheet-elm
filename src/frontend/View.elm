@@ -6,11 +6,12 @@ import Html.Events exposing (..)
 import Components
 import Events exposing (..)
 import Exercise exposing (Exercise)
-import ExerciseSheet exposing (ExerciseSheet, LazySheet)
+import ExerciseSheet exposing (ExerciseSheet, LazySheet, SyncState(..))
 import FontAwesome exposing (..)
 import Icons as Fa
 import Model exposing (Model)
 import Route exposing (..)
+
 
 -- VIEW
 
@@ -109,5 +110,30 @@ sheetSummarySidebar model =
                     |> ExerciseSheet.length
                     |> toString
                     |> text
+                , br [] []
+                , syncState sheet'.syncState
                 ]
     ]
+
+
+syncState : ExerciseSheet.SyncState -> Html Msg
+syncState sync =
+    text <|
+        case sync of
+            UpToDate ->
+                "UpToDaye"
+
+            Delayed ->
+                "Delayed"
+
+            ReadyToSync ->
+                "ReadyToSync"
+
+            Syncing ->
+                "Syncing"
+
+            SyncingOutdated ->
+                "Syncing"
+
+            SyncError ->
+                "Error"

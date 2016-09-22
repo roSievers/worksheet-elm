@@ -1,7 +1,8 @@
 module Main exposing (..)
 
 import Html.App as Html
-import Events exposing (Msg)
+import Time
+import Events exposing (Msg(SheetMessage), SheetMsg(AutosaveTick))
 import Model exposing (Model, init)
 import View exposing (view)
 import Update exposing (update)
@@ -22,4 +23,4 @@ main =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Time.every (5*Time.second) (\_ -> SheetMessage AutosaveTick)
