@@ -5,13 +5,15 @@ import Route exposing (..)
 import Exercise exposing (..)
 import ExerciseSheet exposing (ExerciseSheet, LazySheet)
 
+import Time exposing (Time)
+
 {-| This type only contains messages where the update can only affect the SheetList
 Component. -}
 type SheetMsg
     = NewExercise Exercise
     | DirtySheet
-    | AutosaveTick
-    | SaveDone
+    | AutosaveTick Time
+    | SaveDone Time
 
 
 type EEditorMsg
@@ -29,7 +31,7 @@ type Msg
     | ExerciseMessage ExerciseMsg
     | SetSheet (Maybe LazySheet)
     | SheetMessage SheetMsg
-    | Save ExerciseSheet
+    | Save Time ExerciseSheet
 
 type ExerciseMsg
     = AddExercise Exercise

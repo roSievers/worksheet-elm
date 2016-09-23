@@ -3,6 +3,7 @@ module View exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (class, type', placeholder, value, style)
 import Html.Events exposing (..)
+import Time
 import Components exposing (Decorator)
 import Events exposing (..)
 import Exercise exposing (Exercise)
@@ -114,6 +115,8 @@ sheetSummarySidebar model sheet =
     , p []
         [ syncState sheet
         , br [] []
+        , syncTime sheet
+        , br [] []
         , text "Count: "
         , sheet
             |> ExerciseSheet.length
@@ -162,6 +165,20 @@ syncState sheet =
                 [ icon Fa.exclamation
                 , text " Error while saving."
                 ]
+
+
+syncTime : ExerciseSheet -> Html Msg
+syncTime sheet =
+    case sheet.lastSave of
+        Nothing ->
+            text "Unmodified"
+
+        Just time ->
+            text ("Last Save: "
+              ++ toString (truncate (Time.inHours time) % 24)
+              ++ ":"
+              ++ toString (truncate (Time.inMinutes time) % 60)
+              )
 
 
 illegalRoute : Html Msg

@@ -81,9 +81,9 @@ update msg model =
                         , command
                         )
 
-        Save sheet ->
+        Save time sheet ->
             ( model
-            , Task.perform LoadingFail (\_ -> SheetMessage SaveDone) (ExerciseSheet.update sheet)
+            , Task.perform LoadingFail (\_ -> SheetMessage (SaveDone time)) (ExerciseSheet.update sheet)
             )
 
 
@@ -100,20 +100,20 @@ updateSheet msg sheet =
             , Cmd.none
             )
 
-        AutosaveTick ->
+        AutosaveTick time ->
             let
                 ( newSheet, doSave ) =
                     ExerciseSheet.autosaveTick sheet
             in
                 ( newSheet
                 , if doSave then
-                    Cmd.Extra.message (Save newSheet)
+                    Cmd.Extra.message (Save time newSheet)
                   else
                     Cmd.none
                 )
 
-        SaveDone ->
-            ( ExerciseSheet.saveDone sheet
+        SaveDone time ->
+            ( ExerciseSheet.saveDone time sheet
             , Cmd.none
             )
 

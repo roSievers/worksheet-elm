@@ -6,6 +6,7 @@ import Json.Encode
 import Task exposing (Task)
 import Set exposing (Set)
 import List.Extra exposing (replaceIf, uniqueBy)
+import Time exposing (Time)
 import Exercise exposing (..)
 
 
@@ -112,7 +113,10 @@ type alias ExerciseSheet =
     , list : List Exercise
     , set : Set Int
     , title : String
-    , syncState : SyncState
+    , syncState :
+        SyncState
+        -- This is meta information that should be located elsewhere...
+    , lastSave : Maybe Time
     }
 
 
@@ -125,7 +129,7 @@ fromList uid title list =
         set =
             Set.fromList <| List.map extractUID list'
     in
-        ExerciseSheet uid list set title UpToDate
+        ExerciseSheet uid list set title UpToDate Nothing
 
 
 remove : Int -> ExerciseSheet -> ExerciseSheet
@@ -226,19 +230,21 @@ autosaveTick sheet =
         )
 
 
-saveDone : ExerciseSheet -> ExerciseSheet
-saveDone sheet =
+saveDone : Time -> ExerciseSheet -> ExerciseSheet
+saveDone time sheet =
     { sheet
         | syncState =
             case sheet.syncState of
                 UpToDate ->
                     UpToDate
 
+                -- illegal state
                 Delayed ->
-                    Delayed -- illegal state
+                    Delayed
 
+                -- illegal state
                 ReadyToSync ->
-                    ReadyToSync -- illegal state
+                    ReadyToSync
 
                 Syncing ->
                     UpToDate
@@ -246,6 +252,8 @@ saveDone sheet =
                 SyncingOutdated ->
                     Delayed
 
+                    -- What does this represent?
                 SyncError ->
-                    SyncError -- What does this represent?
+                    SyncError
+        , lastSave = Just time
     }
