@@ -139,13 +139,13 @@ syncState sheet =
         Delayed ->
             span []
                 [ icon Fa.floppy_o
-                , text " Unsaved Changes"
+                , text " Modified"
                 ]
 
         ReadyToSync ->
             span []
                 [ icon Fa.floppy_o
-                , text " Unsaved Changes"
+                , text " Modified"
                 ]
 
         Syncing ->
@@ -171,7 +171,7 @@ syncTime : ExerciseSheet -> Html Msg
 syncTime sheet =
     case sheet.lastSave of
         Nothing ->
-            text "Unmodified"
+            text "Original Version"
 
         Just time ->
             text ("Last Save: "
