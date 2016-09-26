@@ -14,12 +14,12 @@ type SheetMsg
     | DirtySheet
     | AutosaveTick Time
     | SaveDone Time
+    | UpdateExercise Exercise
 
 
 type EEditorMsg
     = UpdateTitle String
     | UpdateText String
-    | CreateExercise
 
 type Msg
     = ExerciseEditor EEditorMsg
@@ -32,6 +32,9 @@ type Msg
     | SetSheet (Maybe LazySheet)
     | SheetMessage SheetMsg
     | Save Time ExerciseSheet
+    | EditExercise Exercise
+    | CancelEdit
+    | SetEditMode Bool
 
 type ExerciseMsg
     = AddExercise Exercise

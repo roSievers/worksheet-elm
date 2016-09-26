@@ -8,5 +8,4 @@ import Exercise exposing (Exercise)
 type Route
     = Home
     | Current
-    | SingleExercise Exercise
     | Search

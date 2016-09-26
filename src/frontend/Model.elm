@@ -14,6 +14,8 @@ import Route exposing (Route(Home))
 type alias Model =
     { route : Route
     , exercises : List Exercise
+    , edit : Maybe Exercise
+    , editMode : Bool
     , sheet : Maybe ExerciseSheet
     , sheets : Maybe (List LazySheet)
     , currentUID : Int
@@ -24,6 +26,8 @@ init : ( Model, Cmd Msg )
 init =
     ( { route = Home
       , exercises = []
+      , edit = Nothing
+      , editMode = True
       , sheet = Nothing
       , sheets = Nothing
       , currentUID = 1001

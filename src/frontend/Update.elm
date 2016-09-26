@@ -14,7 +14,12 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ExerciseEditor msg' ->
-            updateEEditor msg' model
+            case model.edit of
+                Just exercise ->
+                    updateEEditor msg' model exercise
+
+                Nothing ->
+                    ( model, Cmd.none )
 
         SetRoute route ->
             ( { model
@@ -86,6 +91,21 @@ update msg model =
             , Task.perform LoadingFail (\_ -> SheetMessage (SaveDone time)) (ExerciseSheet.update sheet)
             )
 
+        EditExercise exercise ->
+            ( { model | edit = Just exercise }
+            , Cmd.none
+            )
+
+        CancelEdit ->
+            ( { model | edit = Nothing }
+            , Cmd.none
+            )
+
+        SetEditMode bool ->
+            ( { model | editMode = bool }
+            , Cmd.none
+            )
+
 
 updateSheet : SheetMsg -> ExerciseSheet -> ( ExerciseSheet, Cmd Msg )
 updateSheet msg sheet =
@@ -117,6 +137,14 @@ updateSheet msg sheet =
             , Cmd.none
             )
 
+        UpdateExercise exercise ->
+            ( ExerciseSheet.insert exercise sheet
+            , Cmd.batch
+                [ Cmd.Extra.message CancelEdit
+                , Task.perform LoadingFail (NewExercise >> SheetMessage) (Exercise.updateExercise exercise)
+                ]
+            )
+
 
 updateExercise : ExerciseMsg -> Model -> ( Model, Cmd Msg )
 updateExercise msg model =
@@ -136,21 +164,11 @@ updateExercise msg model =
             )
 
 
-updateEEditor : EEditorMsg -> Model -> ( Model, Cmd Msg )
-updateEEditor msg model =
-    case model.route of
-        SingleExercise exercise ->
-            case msg of
-                UpdateTitle title ->
-                    ( { model | route = SingleExercise { exercise | title = title } }, Cmd.none )
+updateEEditor : EEditorMsg -> Model -> Exercise -> ( Model, Cmd Msg )
+updateEEditor msg model exercise =
+    case msg of
+        UpdateTitle title ->
+            ( { model | edit = Just { exercise | title = title } }, Cmd.none )
 
-                UpdateText text ->
-                    ( { model | route = SingleExercise { exercise | text = text } }, Cmd.none )
-
-                CreateExercise ->
-                    ( { model | route = SingleExercise blankExercise }
-                    , Task.perform LoadingFail (NewExercise >> SheetMessage) (Exercise.updateExercise exercise)
-                    )
-
-        _ ->
-            ( model, Cmd.none )
+        UpdateText text ->
+            ( { model | edit = Just { exercise | text = text } }, Cmd.none )

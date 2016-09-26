@@ -63,11 +63,21 @@ h1, h2, h3, h4 {
 .edit-p {
   display: block;
   width: 100%;
+  margin-bottom: 0.8em;
 }
 
 .edit-h1 {
     font-size : 200%;
     display: block;
-    margin-top: 0.5em;
     margin-bottom: 0.5em;
+    width: 100%;
+    display: block;
+}
+
+.disabled {
+    color : gray;
+}
+
+.right-align {
+    text-align: right;
 }

@@ -12,7 +12,11 @@ import FontAwesome exposing (..)
 import Icons as Fa
 
 
-type alias Decorator a = a -> Html Msg
+{-| TODO: This could also be called View a. Depending on the context either
+might be better.
+-}
+type alias Decorator a =
+    a -> Html Msg
 
 
 {-| header : Model -> Html Msg
@@ -60,20 +64,14 @@ mainFullWidth main =
         main
 
 
-exerciseList : Decorator Exercise -> List Exercise -> Html Msg
-exerciseList decorator exercises =
-    div [ class "catalog" ] <|
-        List.map (exerciseListItem decorator) exercises
+list : (a -> Html Msg) -> List a -> Html Msg
+list itemRenderer items =
+    div [ class "catalog" ] (List.map itemRenderer items)
 
 
-exerciseListItem : Decorator Exercise -> Exercise -> Html Msg
-exerciseListItem decorator exercise =
-    div [ class "summary" ]
-        [ div []
-            [ h1 [ onClick (SetRoute (SingleExercise exercise)) ] [ text (exercise.title) ]
-            , span [ class "summary-hints" ]
-                [ decorator exercise
-                ]
-            , p [ class "summary-text" ] [ text exercise.text ]
-            ]
-        ]
+dependentView : Decorator a -> Decorator a -> (a -> Bool) -> Decorator a
+dependentView success failure property a =
+    if property a then
+        success a
+    else
+        failure a
