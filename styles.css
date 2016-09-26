@@ -1,81 +1,49 @@
-body {
-    font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
-    color: #293c4b;
-    margin: 0;
-}
-
-.center {
-    width: 920px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-p {
-    line-height: 1.5em;
-}
-
-h1, h2, h3, h4 {
-    font-weight: normal;
+.sidebar {
+    /*width: 200px;
     display: inline-block;
+    vertical-align: top;
+    */
 }
 
-.summary {
-    padding: 20px 0;
+.sidebar div {
+    margin: 0px 0px 0px 15px;
+    border-left: 1px solid #eeeeee;
+    padding: 15px;
+}
+
+.exercise-view {
     border-bottom: 1px solid #eeeeee;
 }
 
-.summary h1 {
-    margin: 0;
-    font-size: 1.8em;
-    display: inline-block;
+.exercise-view>div {
+    width: 100%;
 }
 
-.summary-hints {
+.exercise-buttons {
+    margin: 25px 0 20px 0;
     float: right;
-    font-size: 1em;
-    padding-top: 0.5em;
-    color: #bbbbbb;
 }
 
-.summary-hints button {
-    color: #bbbbbb;
+.exercise-buttons button {
+    margin-right : -2px;
 }
 
-.summary-desc {
-    margin: 0.5em 0;
-}
-
-.main-pannel {
-    width: 600px;
+.content-subhead {
     display: inline-block;
-    vertical-align: top;
-}
-
-.sidebar {
-    width: 200px;
-    display: inline-block;
-    vertical-align: top;
-    padding: 20px;
-    margin: 20px 20px 20px 40px;
-    border-left: 1px solid #eeeeee;
 }
 
 .edit-p {
-  display: block;
-  width: 100%;
-  margin-bottom: 0.8em;
+    display: block;
+    width: 100%;
+    margin-bottom: 0.8em;
 }
 
 .edit-h1 {
-    font-size : 200%;
+    font-size: 150%;
     display: block;
-    margin-bottom: 0.5em;
+    margin: 25px 0 20px 0;
     width: 100%;
     display: block;
-}
-
-.disabled {
-    color : gray;
 }
 
 .right-align {

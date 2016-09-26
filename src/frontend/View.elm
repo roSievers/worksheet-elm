@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, type', placeholder, value, style)
+import Html.Attributes exposing (class, type', placeholder, value, style, id)
 import Html.Events exposing (..)
 import Time
 import Components exposing (Decorator)
@@ -19,57 +19,58 @@ import Route exposing (..)
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ Components.header model
-        , case model.route of
-            Search ->
-                searchPanel model
+    case model.route of
+        Search ->
+            searchPanel model
 
-            Current ->
-                model.sheet
-                    |> Maybe.map (\sheet -> sheetPanel model sheet)
-                    |> Maybe.withDefault illegalRoute
+        Current ->
+            model.sheet
+                |> Maybe.map (\sheet -> sheetPanel model sheet)
+                |> Maybe.withDefault illegalRoute
 
-            Home ->
-                homePanel model
-        ]
+        Home ->
+            homePanel model
 
 
 homePanel : Model -> Html Msg
 homePanel model =
-    Components.mainFullWidth
-        (case model.sheets of
-            Nothing ->
-                [ h1 [] [ text "Welcome" ]
-                , p [] [ text "No Worksheets known." ]
-                ]
-
-            Just sheets ->
-                List.append
-                    [ h1 [] [ text "Welcome" ]
-                    , p [] [ text "Choose an execise sheet to work on" ]
+    Components.layout
+        model
+        [ h1 [] [ text "Welcome to Moni-Worksheet" ] ]
+        (Components.mainFullWidth
+            (case model.sheets of
+                Nothing ->
+                    [ p [] [ text "No Worksheets known." ]
                     ]
-                    (List.map loadSheetButton sheets)
+
+                Just sheets ->
+                    List.append
+                        [ p [] [ text "Choose an execise sheet to work on" ]
+                        ]
+                        (List.map loadSheetButton sheets)
+            )
         )
 
 
 loadSheetButton : LazySheet -> Html Msg
 loadSheetButton lsheet =
-    button [ onClick (SetSheet (Just lsheet)) ] [ text lsheet.title ]
+    button [ onClick (SetSheet (Just lsheet)), class "pure-button" ] [ text lsheet.title ]
 
 
 sheetPanel : Model -> ExerciseSheet -> Html Msg
 sheetPanel model sheet =
-    Components.mainWithSidebar
+    Components.layout
+        model
         [ h1 [] [ text sheet.title ]
-        , span [ class "summary-hints" ]
-            [ button [ onClick (SetSheet Nothing) ] [ text "Close" ]
-            ]
-        , Components.list
-            (sheetListExerciseView model sheet)
-            sheet.list
+        , h2 [] [ button [ onClick (SetSheet Nothing), class "pure-button" ] [ text "Close" ] ]
         ]
-        (sheetSummarySidebar model sheet)
+        (Components.mainWithSidebar
+            [ Components.list
+                (sheetListExerciseView model sheet)
+                sheet.list
+            ]
+            (sheetSummarySidebar model sheet)
+        )
 
 
 sheetListExerciseView : Model -> ExerciseSheet -> Exercise -> Html Msg
@@ -108,8 +109,9 @@ exerciseEditView exercise =
                 ]
                 []
             , div [ class "right-align" ]
-                [ button [ onClick CancelEdit ] [ text "Cancel" ]
-                , button [ onClick (SheetMessage (UpdateExercise exercise))] [ text "Save" ]
+                [ button [ onClick CancelEdit, class "pure-button" ] [ text "Cancel" ]
+                , text " "
+                , button [ onClick (SheetMessage (UpdateExercise exercise)), class "pure-button pure-button-primary" ] [ text "Save" ]
                 ]
             ]
         ]
@@ -134,17 +136,17 @@ generates remove buttons. It is meant to be used on the sheet view only.
 toolboxDecorator : ExerciseSheet -> Decorator Exercise
 toolboxDecorator sheet exercise =
     span []
-        [ button [ onClick (EditExercise exercise) ] [ Fa.edit |> large |> icon ]
-        , button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)) ] [ Fa.close |> large |> icon ]
+        [ button [ onClick (EditExercise exercise), class "pure-button" ] [ Fa.edit |> icon ]
+        , button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> icon ]
         ]
 
 
 addRemoveDecorator : ExerciseSheet -> Decorator Exercise
 addRemoveDecorator sheet exercise =
     if ExerciseSheet.member exercise.uid sheet then
-        button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)) ] [ Fa.close |> large |> icon ]
+        button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> icon ]
     else
-        button [ onClick (ExerciseMessage (AddExercise exercise)) ] [ Fa.plus |> large |> icon ]
+        button [ onClick (ExerciseMessage (AddExercise exercise)), class "pure-button" ] [ Fa.plus |> icon ]
 
 
 emptyDecorator : Decorator Exercise
@@ -154,26 +156,32 @@ emptyDecorator _ =
 
 searchPanel : Model -> Html Msg
 searchPanel model =
-    Components.mainFullWidth
-        [ h1 [] [ text "All Exercises" ]
-        , Components.list
-            (exerciseView
-                (model.sheet
-                    |> Maybe.map addRemoveDecorator
-                    |> Maybe.withDefault emptyDecorator
+    Components.layout
+        model
+        [ h1 [] [ text "All Exercises" ] ]
+        (Components.mainFullWidth
+            [ Components.list
+                (exerciseView
+                    (model.sheet
+                        |> Maybe.map addRemoveDecorator
+                        |> Maybe.withDefault emptyDecorator
+                    )
                 )
-            )
-            model.exercises
-        ]
+                model.exercises
+            ]
+        )
 
 
 exerciseView : Decorator Exercise -> Exercise -> Html Msg
 exerciseView decorator exercise =
     div [ class "summary" ]
-        [ div []
-            [ h1 [] [ text (exercise.title) ]
-            , span [ class "summary-hints" ]
-                [ decorator exercise
+        [ div [ class "exercise-view" ]
+            [ div []
+                [ h2 [ class "content-subhead" ]
+                    [ text (exercise.title) ]
+                , span [ class "exercise-buttons" ]
+                    [ decorator exercise
+                    ]
                 ]
             , p [ class "summary-text" ] [ text exercise.text ]
             ]

@@ -1,7 +1,7 @@
 module Components exposing (..)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, type', placeholder, value, style)
+import Html.Attributes exposing (class, type', placeholder, value, style, id, href)
 import Html.App as Html
 import Html.Events exposing (..)
 import Route exposing (..)
@@ -19,20 +19,30 @@ type alias Decorator a =
     a -> Html Msg
 
 
+layout model title content =
+    div [ id "layout" ]
+        [ a [ href "#menu", id "menuLink", class "menu-link" ]
+            [ span [] [] ]
+        , menu model
+        , div [ id "main" ]
+            [ header title
+            , div [ class "content" ] [ content ]
+            ]
+        ]
+
+
 {-| header : Model -> Html Msg
 -}
-header model =
-    div []
-        [ div [ style [ ( "background-color", "rgb(238, 238, 238)" ) ] ]
-            [ div [ class "center", style [ ( "padding", "10px 0" ) ] ]
-                [ button [ onClick (SetRoute Home) ] [ text " Home" ]
+menu model =
+    div [ id "menu" ]
+        [ div [ class "pure-menu" ]
+            [ a [ class "pure-menu-heading", href "#" ] [ text "Worksheet" ]
+            , ul [ class "pure-menu-list" ]
+                [ li [ class "pure-menu-item" ]
+                    [ a [ onClick (SetRoute Home), class "pure-menu-link" ] [ text " Home" ] ]
                 , currentSheetButton model.sheet
-                , button [ onClick (SetRoute Search) ] [ icon Fa.search, text " Search" ]
-                ]
-            ]
-        , div [ style [ ( "background-color", "rgb(96,181,204)" ) ] ]
-            [ div [ style [ ( "width", "920px" ), ( "margin-left", "auto" ), ( "margin-right", "auto" ) ] ]
-                [ div [ style [ ( "margin", "0" ), ( "padding", "1px 0" ) ] ] []
+                , li [ class "pure-menu-item" ]
+                    [ a [ onClick (SetRoute Search), class "pure-menu-link" ] [ icon Fa.search, text " Search" ] ]
                 ]
             ]
         ]
@@ -45,17 +55,31 @@ currentSheetButton sheet =
             span [] []
 
         Just sheet' ->
-            button [ onClick (SetRoute Current) ] [ icon Fa.list, text " ", text sheet'.title ]
+            li [ class "pure-menu-item" ]
+                [ a [ onClick (SetRoute Current), class "pure-menu-link" ] [ icon Fa.list, text " ", text sheet'.title ] ]
+
+
+header content =
+    div [ class "header" ] content
 
 
 mainWithSidebar : List (Html msg) -> List (Html msg) -> Html msg
 mainWithSidebar main sidebar =
-    div [ class "center" ]
-        [ div [ class "main-pannel" ]
+    div [ class "pure-g" ]
+        [ div [ class "pure-u-3-4" ]
             main
-        , div [ class "Sidebar" ]
-            sidebar
+        , div [ class "pure-u-1-4 sidebar" ]
+            [ div [] sidebar ]
         ]
+
+
+
+{- <div class="pure-g">
+       <div class="pure-u-1-3"><p>Thirds</p></div>
+       <div class="pure-u-1-3"><p>Thirds</p></div>
+       <div class="pure-u-1-3"><p>Thirds</p></div>
+   </div>
+-}
 
 
 mainFullWidth : List (Html msg) -> Html msg
