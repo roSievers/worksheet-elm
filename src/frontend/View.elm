@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (class, type', placeholder, value, style, id)
 import Html.Events exposing (..)
 import Time
-import Components exposing (Decorator)
+import Components exposing (Decorator, IndexDecorator)
 import Events exposing (..)
 import Exercise exposing (Exercise)
 import ExerciseSheet exposing (ExerciseSheet, LazySheet, SyncState(..))
@@ -73,8 +73,8 @@ sheetPanel model sheet =
         )
 
 
-sheetListExerciseView : Model -> ExerciseSheet -> Exercise -> Html Msg
-sheetListExerciseView model sheet exercise =
+sheetListExerciseView : Model -> ExerciseSheet -> IndexDecorator Exercise
+sheetListExerciseView model sheet index exercise =
     case editVersion model exercise of
         Nothing ->
             exerciseView
@@ -83,14 +83,15 @@ sheetListExerciseView model sheet exercise =
                  else
                     emptyDecorator
                 )
+                index
                 exercise
 
         Just edit ->
-            exerciseEditView edit
+            exerciseEditView index edit
 
 
-exerciseEditView : Exercise -> Html Msg
-exerciseEditView exercise =
+exerciseEditView : IndexDecorator Exercise
+exerciseEditView _ exercise =
     div [ class "summary" ]
         [ div []
             [ input
@@ -133,24 +134,26 @@ editVersion model exercise =
 {-| This decorator assumes that all exercises are part of the sheet and only
 generates remove buttons. It is meant to be used on the sheet view only.
 -}
-toolboxDecorator : ExerciseSheet -> Decorator Exercise
-toolboxDecorator sheet exercise =
+toolboxDecorator : ExerciseSheet -> IndexDecorator Exercise
+toolboxDecorator sheet index exercise =
     span []
-        [ button [ onClick (EditExercise exercise), class "pure-button" ] [ Fa.edit |> icon ]
+        [ button [ onClick (SheetMessage (SwitchPosition index (index - 1))), class "pure-button" ] [ icon Fa.arrow_up ]
+        , button [ onClick (SheetMessage (SwitchPosition index (index + 1))), class "pure-button" ] [ icon Fa.arrow_down ]
+        , button [ onClick (EditExercise exercise), class "pure-button" ] [ Fa.edit |> icon ]
         , button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> icon ]
         ]
 
 
-addRemoveDecorator : ExerciseSheet -> Decorator Exercise
-addRemoveDecorator sheet exercise =
+addRemoveDecorator : ExerciseSheet -> IndexDecorator Exercise
+addRemoveDecorator sheet _ exercise =
     if ExerciseSheet.member exercise.uid sheet then
         button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> icon ]
     else
         button [ onClick (ExerciseMessage (AddExercise exercise)), class "pure-button" ] [ Fa.plus |> icon ]
 
 
-emptyDecorator : Decorator Exercise
-emptyDecorator _ =
+emptyDecorator : IndexDecorator Exercise
+emptyDecorator _ _ =
     span [] []
 
 
@@ -172,15 +175,15 @@ searchPanel model =
         )
 
 
-exerciseView : Decorator Exercise -> Exercise -> Html Msg
-exerciseView decorator exercise =
+exerciseView : IndexDecorator Exercise -> IndexDecorator Exercise
+exerciseView decorator index exercise =
     div [ class "summary" ]
         [ div [ class "exercise-view" ]
             [ div []
                 [ h2 [ class "content-subhead" ]
                     [ text (exercise.title) ]
                 , span [ class "exercise-buttons" ]
-                    [ decorator exercise
+                    [ decorator index exercise
                     ]
                 ]
             , p [ class "summary-text" ] [ text exercise.text ]

@@ -160,6 +160,29 @@ insert element sheet =
         }
 
 
+{-| This quietly fails if the indices don't exist.
+-}
+switchPosition : Int -> Int -> ExerciseSheet -> ExerciseSheet
+switchPosition first second sheet =
+    let
+        maybeNewList =
+            Maybe.map2
+                (\firstExercise secondExercise ->
+                    sheet.list
+                        |> setAt first secondExercise
+                        |> setAt second firstExercise
+                )
+                (List.Extra.getAt first sheet.list)
+                (List.Extra.getAt second sheet.list)
+    in
+        { sheet | list = Maybe.withDefault sheet.list maybeNewList }
+
+
+setAt : Int -> a -> List a -> List a
+setAt index value list =
+    Maybe.withDefault list (List.Extra.setAt index value list)
+
+
 member : Int -> ExerciseSheet -> Bool
 member uid sheet =
     Set.member uid sheet.set
@@ -252,7 +275,7 @@ saveDone time sheet =
                 SyncingOutdated ->
                     Delayed
 
-                    -- What does this represent?
+                -- What does this represent?
                 SyncError ->
                     SyncError
         , lastSave = Just time

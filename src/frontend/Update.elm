@@ -145,6 +145,10 @@ updateSheet msg sheet =
                 ]
             )
 
+        SwitchPosition first second ->
+            ( ExerciseSheet.switchPosition first second sheet
+            , Cmd.Extra.message (SheetMessage DirtySheet) )
+
 
 updateExercise : ExerciseMsg -> Model -> ( Model, Cmd Msg )
 updateExercise msg model =

@@ -18,6 +18,9 @@ might be better.
 type alias Decorator a =
     a -> Html Msg
 
+type alias IndexDecorator a =
+    Int -> a -> Html Msg
+
 
 layout model title content =
     div [ id "layout" ]
@@ -73,24 +76,15 @@ mainWithSidebar main sidebar =
         ]
 
 
-
-{- <div class="pure-g">
-       <div class="pure-u-1-3"><p>Thirds</p></div>
-       <div class="pure-u-1-3"><p>Thirds</p></div>
-       <div class="pure-u-1-3"><p>Thirds</p></div>
-   </div>
--}
-
-
 mainFullWidth : List (Html msg) -> Html msg
 mainFullWidth main =
     div [ class "center" ]
         main
 
 
-list : (a -> Html Msg) -> List a -> Html Msg
+list : IndexDecorator a -> List a -> Html Msg
 list itemRenderer items =
-    div [ class "catalog" ] (List.map itemRenderer items)
+    div [ class "catalog" ] (List.indexedMap itemRenderer items)
 
 
 dependentView : Decorator a -> Decorator a -> (a -> Bool) -> Decorator a

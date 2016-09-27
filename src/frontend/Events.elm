@@ -15,6 +15,7 @@ type SheetMsg
     | AutosaveTick Time
     | SaveDone Time
     | UpdateExercise Exercise
+    | SwitchPosition Int Int
 
 
 type EEditorMsg
