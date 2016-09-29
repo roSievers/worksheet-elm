@@ -3,7 +3,7 @@ module Model exposing (..)
 import Task
 import Events exposing (..)
 import Exercise exposing (Exercise)
-import ExerciseSheet exposing (ExerciseSheet, LazySheet)
+import Sheet exposing (Sheet, LazySheet)
 import Requests exposing (requestExerciseList)
 import Route exposing (Route(Home))
 
@@ -16,7 +16,7 @@ type alias Model =
     , exercises : List Exercise
     , edit : Maybe Exercise
     , editMode : Bool
-    , sheet : Maybe ExerciseSheet
+    , sheet : Maybe Sheet
     , sheets : Maybe (List LazySheet)
     , currentUID : Int
     }
@@ -34,6 +34,6 @@ init =
       }
     , Cmd.batch
         [ requestExerciseList SearchResultsArrived "http://localhost:8010/api/deprecated/exercises"
-        , Task.perform LoadingFail SheetListArrived ExerciseSheet.loadSheetList
+        , Task.perform LoadingFail SheetListArrived Sheet.loadSheetList
         ]
     )

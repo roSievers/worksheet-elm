@@ -7,7 +7,7 @@ import Html.Events exposing (..)
 import Route exposing (..)
 import Events exposing (..)
 import Exercise exposing (..)
-import ExerciseSheet exposing (ExerciseSheet)
+import Sheet exposing (Sheet)
 import FontAwesome exposing (..)
 import Icons as Fa
 
@@ -51,7 +51,7 @@ menu model =
         ]
 
 
-currentSheetButton : Maybe ExerciseSheet -> Html Msg
+currentSheetButton : Maybe Sheet -> Html Msg
 currentSheetButton sheet =
     case sheet of
         Nothing ->

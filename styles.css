@@ -25,7 +25,7 @@
 }
 
 .exercise-buttons button {
-    margin-right : -2px;
+    margin-right: -2px;
 }
 
 .content-subhead {
@@ -48,4 +48,14 @@
 
 .right-align {
     text-align: right;
+}
+
+.between-menu {
+    text-align: center;
+    font-size: 66%;
+    margin-top: -12px;
+}
+
+.wide-button {
+    width: 100%;
 }

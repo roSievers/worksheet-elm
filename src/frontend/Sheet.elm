@@ -1,4 +1,4 @@
-module ExerciseSheet exposing (..)
+module Sheet exposing (..)
 
 import Http
 import Json.Decode exposing ((:=))
@@ -25,7 +25,7 @@ type alias LazySheet =
     }
 
 
-decodeSheet : Json.Decode.Decoder ExerciseSheet
+decodeSheet : Json.Decode.Decoder Sheet
 decodeSheet =
     Json.Decode.object3 fromList
         ("uid" := Json.Decode.int)
@@ -37,7 +37,7 @@ encodeUID exercise =
     Json.Encode.int (exercise.uid)
 
 
-encodeSheet : ExerciseSheet -> String
+encodeSheet : Sheet -> String
 encodeSheet sheet =
     Json.Encode.encode 0 <|
         Json.Encode.object
@@ -72,12 +72,12 @@ decodeConfirmation =
                     Json.Decode.fail ("Status code was: '" ++ status ++ "'.")
 
 
-load : LazySheet -> Task Http.Error ExerciseSheet
+load : LazySheet -> Task Http.Error Sheet
 load lsheet =
     Http.get decodeSheet ("http://localhost:8010/api/sheet/" ++ toString lsheet.uid)
 
 
-update : ExerciseSheet -> Task Http.Error ()
+update : Sheet -> Task Http.Error ()
 update sheet =
     Http.post
         decodeConfirmation
@@ -89,7 +89,7 @@ loadSheetList =
     Http.get decodeSheetList "http://localhost:8010/api/sheets"
 
 
-{-| Synchonisation of the ExerciseSheet waits until a few seconds have passed
+{-| Synchonisation of the Sheet waits until a few seconds have passed
 without any changes before it does an autosave. The Delayed SyncState is used
 to represent this.
 
@@ -108,7 +108,7 @@ type SyncState
     | SyncError
 
 
-type alias ExerciseSheet =
+type alias Sheet =
     { uid : Int
     , list : List Exercise
     , set : Set Int
@@ -120,7 +120,7 @@ type alias ExerciseSheet =
     }
 
 
-fromList : Int -> String -> List Exercise -> ExerciseSheet
+fromList : Int -> String -> List Exercise -> Sheet
 fromList uid title list =
     let
         list' =
@@ -129,10 +129,10 @@ fromList uid title list =
         set =
             Set.fromList <| List.map extractUID list'
     in
-        ExerciseSheet uid list set title UpToDate Nothing
+        Sheet uid list set title UpToDate Nothing
 
 
-remove : Int -> ExerciseSheet -> ExerciseSheet
+remove : Int -> Sheet -> Sheet
 remove uid sheet =
     let
         list =
@@ -147,7 +147,7 @@ remove uid sheet =
         }
 
 
-insert : Exercise -> ExerciseSheet -> ExerciseSheet
+insert : Exercise -> Sheet -> Sheet
 insert element sheet =
     if Set.member element.uid sheet.set then
         { sheet
@@ -160,7 +160,7 @@ insert element sheet =
         }
 
 
-switchPosition : Int -> Int -> ExerciseSheet -> ExerciseSheet
+switchPosition : Int -> Int -> Sheet -> Sheet
 switchPosition first second sheet =
     let
         maybeNewList = swapAt first second sheet.list
@@ -192,22 +192,22 @@ swapAt index1 index2 l =
                 (List.Extra.uncons tail2)
 
 
-member : Int -> ExerciseSheet -> Bool
+member : Int -> Sheet -> Bool
 member uid sheet =
     Set.member uid sheet.set
 
 
-find : Int -> ExerciseSheet -> Maybe Exercise
+find : Int -> Sheet -> Maybe Exercise
 find uid sheet =
     List.Extra.find (extractUID >> ((==) uid)) sheet.list
 
 
-length : ExerciseSheet -> Int
+length : Sheet -> Int
 length sheet =
     List.length sheet.list
 
 
-dirty : ExerciseSheet -> ExerciseSheet
+dirty : Sheet -> Sheet
 dirty sheet =
     { sheet
         | syncState =
@@ -232,7 +232,7 @@ dirty sheet =
     }
 
 
-autosaveTick : ExerciseSheet -> ( ExerciseSheet, Bool )
+autosaveTick : Sheet -> ( Sheet, Bool )
 autosaveTick sheet =
     let
         ( newSyncState, doSave ) =
@@ -262,7 +262,7 @@ autosaveTick sheet =
         )
 
 
-saveDone : Time -> ExerciseSheet -> ExerciseSheet
+saveDone : Time -> Sheet -> Sheet
 saveDone time sheet =
     { sheet
         | syncState =

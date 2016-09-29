@@ -6,7 +6,7 @@ import Debug exposing (crash)
 import Route exposing (..)
 import Events exposing (..)
 import Exercise exposing (..)
-import ExerciseSheet exposing (ExerciseSheet, LazySheet)
+import Sheet exposing (Sheet, LazySheet)
 import Model exposing (Model)
 
 
@@ -68,7 +68,7 @@ update msg model =
                     )
 
                 Just lsheet' ->
-                    ( model, Task.perform LoadingFail SheetArrived <| ExerciseSheet.load lsheet' )
+                    ( model, Task.perform LoadingFail SheetArrived <| Sheet.load lsheet' )
 
         SheetMessage msg ->
             case model.sheet of
@@ -88,7 +88,7 @@ update msg model =
 
         Save time sheet ->
             ( model
-            , Task.perform LoadingFail (\_ -> SheetMessage (SaveDone time)) (ExerciseSheet.update sheet)
+            , Task.perform LoadingFail (\_ -> SheetMessage (SaveDone time)) (Sheet.update sheet)
             )
 
         EditExercise exercise ->
@@ -107,23 +107,23 @@ update msg model =
             )
 
 
-updateSheet : SheetMsg -> ExerciseSheet -> ( ExerciseSheet, Cmd Msg )
+updateSheet : SheetMsg -> Sheet -> ( Sheet, Cmd Msg )
 updateSheet msg sheet =
     case msg of
         NewExercise exercise ->
-            ( ExerciseSheet.insert exercise sheet
+            ( Sheet.insert exercise sheet
             , Cmd.none
             )
 
         DirtySheet ->
-            ( ExerciseSheet.dirty sheet
+            ( Sheet.dirty sheet
             , Cmd.none
             )
 
         AutosaveTick time ->
             let
                 ( newSheet, doSave ) =
-                    ExerciseSheet.autosaveTick sheet
+                    Sheet.autosaveTick sheet
             in
                 ( newSheet
                 , if doSave then
@@ -133,12 +133,12 @@ updateSheet msg sheet =
                 )
 
         SaveDone time ->
-            ( ExerciseSheet.saveDone time sheet
+            ( Sheet.saveDone time sheet
             , Cmd.none
             )
 
         UpdateExercise exercise ->
-            ( ExerciseSheet.insert exercise sheet
+            ( Sheet.insert exercise sheet
             , Cmd.batch
                 [ Cmd.Extra.message CancelEdit
                 , Task.perform LoadingFail (NewExercise >> SheetMessage) (Exercise.updateExercise exercise)
@@ -146,7 +146,7 @@ updateSheet msg sheet =
             )
 
         SwitchPosition first second ->
-            ( ExerciseSheet.switchPosition first second sheet
+            ( Sheet.switchPosition first second sheet
             , Cmd.Extra.message (SheetMessage DirtySheet) )
 
 
@@ -155,14 +155,14 @@ updateExercise msg model =
     case msg of
         AddExercise exercise ->
             ( { model
-                | sheet = Maybe.map (ExerciseSheet.insert exercise) model.sheet
+                | sheet = Maybe.map (Sheet.insert exercise) model.sheet
               }
             , Cmd.Extra.message (SheetMessage DirtySheet)
             )
 
         RemoveExercise uid ->
             ( { model
-                | sheet = Maybe.map (ExerciseSheet.remove uid) model.sheet
+                | sheet = Maybe.map (Sheet.remove uid) model.sheet
               }
             , Cmd.Extra.message (SheetMessage DirtySheet)
             )

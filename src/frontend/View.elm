@@ -7,7 +7,7 @@ import Time
 import Components exposing (Decorator, IndexDecorator)
 import Events exposing (..)
 import Exercise exposing (Exercise)
-import ExerciseSheet exposing (ExerciseSheet, LazySheet, SyncState(..))
+import Sheet exposing (Sheet, LazySheet, SyncState(..))
 import FontAwesome exposing (..)
 import Icons as Fa
 import Model exposing (Model)
@@ -57,7 +57,7 @@ loadSheetButton lsheet =
     button [ onClick (SetSheet (Just lsheet)), class "pure-button" ] [ text lsheet.title ]
 
 
-sheetPanel : Model -> ExerciseSheet -> Html Msg
+sheetPanel : Model -> Sheet -> Html Msg
 sheetPanel model sheet =
     Components.layout
         model
@@ -73,7 +73,7 @@ sheetPanel model sheet =
         )
 
 
-sheetListExerciseView : Model -> ExerciseSheet -> IndexDecorator Exercise
+sheetListExerciseView : Model -> Sheet -> IndexDecorator Exercise
 sheetListExerciseView model sheet index exercise =
     case editVersion model exercise of
         Nothing ->
@@ -134,7 +134,7 @@ editVersion model exercise =
 {-| This decorator assumes that all exercises are part of the sheet and only
 generates remove buttons. It is meant to be used on the sheet view only.
 -}
-toolboxDecorator : ExerciseSheet -> IndexDecorator Exercise
+toolboxDecorator : Sheet -> IndexDecorator Exercise
 toolboxDecorator sheet index exercise =
     span []
         [ button [ onClick (SheetMessage (SwitchPosition index (index - 1))), class "pure-button" ] [ icon Fa.arrow_up ]
@@ -144,9 +144,9 @@ toolboxDecorator sheet index exercise =
         ]
 
 
-addRemoveDecorator : ExerciseSheet -> IndexDecorator Exercise
+addRemoveDecorator : Sheet -> IndexDecorator Exercise
 addRemoveDecorator sheet _ exercise =
-    if ExerciseSheet.member exercise.uid sheet then
+    if Sheet.member exercise.uid sheet then
         button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> icon ]
     else
         button [ onClick (ExerciseMessage (AddExercise exercise)), class "pure-button" ] [ Fa.plus |> icon ]
@@ -188,10 +188,22 @@ exerciseView decorator index exercise =
                 ]
             , p [ class "summary-text" ] [ text exercise.text ]
             ]
+        , betweenMenu (addButton index)
         ]
 
 
-sheetSummarySidebar : Model -> ExerciseSheet -> List (Html Msg)
+betweenMenu : List (Html msg) -> Html msg
+betweenMenu buttons =
+    div [ class "between-menu" ] buttons
+
+
+addButton : Int -> List (Html Msg)
+addButton index =
+    [ button [ class "pure-button" ] [ icon Fa.plus ]
+    ]
+
+
+sheetSummarySidebar : Model -> Sheet -> List (Html Msg)
 sheetSummarySidebar model sheet =
     [ p []
         [ button [ onClick (SetEditMode True), disableIf (not model.editMode) ]
@@ -212,7 +224,7 @@ sheetSummarySidebar model sheet =
     ]
 
 
-syncState : ExerciseSheet -> Html Msg
+syncState : Sheet -> Html Msg
 syncState sheet =
     case sheet.syncState of
         UpToDate ->
@@ -252,7 +264,7 @@ syncState sheet =
                 ]
 
 
-syncTime : ExerciseSheet -> Html Msg
+syncTime : Sheet -> Html Msg
 syncTime sheet =
     case sheet.lastSave of
         Nothing ->
@@ -270,9 +282,9 @@ syncTime sheet =
 disableIf : Bool -> Html.Attribute msg
 disableIf condition =
     if condition then
-        class "disabled"
+        class "pure-button wide-button"
     else
-        class ""
+        class "pure-button wide-button pure-button-active"
 
 
 illegalRoute : Html Msg

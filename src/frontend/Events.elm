@@ -3,7 +3,7 @@ module Events exposing (..)
 import Http
 import Route exposing (..)
 import Exercise exposing (..)
-import ExerciseSheet exposing (ExerciseSheet, LazySheet)
+import Sheet exposing (Sheet, LazySheet)
 
 import Time exposing (Time)
 
@@ -27,12 +27,12 @@ type Msg
     | SetRoute Route
     | LoadingFail Http.Error
     | SearchResultsArrived (List Exercise)
-    | SheetArrived ExerciseSheet
+    | SheetArrived Sheet
     | SheetListArrived (List LazySheet)
     | ExerciseMessage ExerciseMsg
     | SetSheet (Maybe LazySheet)
     | SheetMessage SheetMsg
-    | Save Time ExerciseSheet
+    | Save Time Sheet
     | EditExercise Exercise
     | CancelEdit
     | SetEditMode Bool
