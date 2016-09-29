@@ -160,27 +160,36 @@ insert element sheet =
         }
 
 
-{-| This quietly fails if the indices don't exist.
--}
 switchPosition : Int -> Int -> ExerciseSheet -> ExerciseSheet
 switchPosition first second sheet =
     let
-        maybeNewList =
-            Maybe.map2
-                (\firstExercise secondExercise ->
-                    sheet.list
-                        |> setAt first secondExercise
-                        |> setAt second firstExercise
-                )
-                (List.Extra.getAt first sheet.list)
-                (List.Extra.getAt second sheet.list)
+        maybeNewList = swapAt first second sheet.list
     in
         { sheet | list = Maybe.withDefault sheet.list maybeNewList }
 
 
-setAt : Int -> a -> List a -> List a
-setAt index value list =
-    Maybe.withDefault list (List.Extra.setAt index value list)
+swapAt : Int -> Int -> List a -> Maybe (List a)
+swapAt index1 index2 l =
+    if index1 == index2 then
+        Just l
+    else if index1 > index2 then
+        swapAt index2 index1 l
+    else if index1 < 0 then
+        Nothing
+    else
+        let
+            ( part1, tail1 ) =
+                List.Extra.splitAt index1 l
+
+            ( head2, tail2 ) =
+                List.Extra.splitAt (index2 - index1) tail1
+        in
+            Maybe.map2
+                (\( value1, part2 ) ( value2, part3 ) ->
+                    List.concat [ part1, value2 :: part2, value1 :: part3 ]
+                )
+                (List.Extra.uncons head2)
+                (List.Extra.uncons tail2)
 
 
 member : Int -> ExerciseSheet -> Bool
