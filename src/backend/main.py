@@ -58,7 +58,7 @@ class ExerciseResource:
     def on_post(self, req, resp, uid):
         exercise = parseInputJSON(req, legalKeys=['title', 'text'])
 
-        if uid == -1:
+        if uid < 0:
             uid = exercises.insert(exercise)
         else:
             exercises.update(exercise, eids=[uid])

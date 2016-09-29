@@ -18,7 +18,7 @@ type alias Model =
     , editMode : Bool
     , sheet : Maybe Sheet
     , sheets : Maybe (List LazySheet)
-    , currentUID : Int
+    , ephemeralUID : Int
     , responsiveMenuActive : Bool
     }
 
@@ -31,11 +31,18 @@ init =
       , editMode = True
       , sheet = Nothing
       , sheets = Nothing
-      , currentUID = 1001
+      , ephemeralUID = -1
       , responsiveMenuActive = False
       }
     , Cmd.batch
         [ requestExerciseList SearchResultsArrived "http://localhost:8010/api/deprecated/exercises"
         , Task.perform LoadingFail SheetListArrived Sheet.loadSheetList
         ]
+    )
+
+
+getEphemeralUID : Model -> ( Model, Int )
+getEphemeralUID model =
+    ( { model | ephemeralUID = model.ephemeralUID - 1 }
+    , model.ephemeralUID
     )

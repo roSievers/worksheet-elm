@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (class, type', placeholder, value, style, id, href)
 import Html.App as Html
 import Html.Events exposing (..)
+import List.Extra
 import Route exposing (..)
 import Events exposing (..)
 import Exercise exposing (..)
@@ -133,6 +134,15 @@ mainFullWidth main =
 list : IndexDecorator a -> List a -> Html Msg
 list itemRenderer items =
     div [ class "catalog" ] (List.indexedMap itemRenderer items)
+
+
+listIntersperse : IndexDecorator () -> IndexDecorator a -> List a -> Html Msg
+listIntersperse intersperseView itemView items =
+    div [ class "catalog" ]
+        (List.Extra.interweave
+            (List.indexedMap intersperseView (List.repeat (1 + List.length items) ()))
+            (List.indexedMap itemView items)
+        )
 
 
 dependentView : Decorator a -> Decorator a -> (a -> Bool) -> Decorator a

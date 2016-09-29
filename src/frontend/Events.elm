@@ -7,15 +7,16 @@ import Sheet exposing (Sheet, LazySheet)
 
 import Time exposing (Time)
 
-{-| This type only contains messages where the update can only affect the SheetList
-Component. -}
+{-| This type only contains messages where the update needs the SheetList
+component to exist. -}
 type SheetMsg
-    = NewExercise Exercise
+    = NewExercise Int Exercise
     | DirtySheet
     | AutosaveTick Time
     | SaveDone Time
     | UpdateExercise Exercise
     | SwitchPosition Int Int
+    | InsertNewExercise Int
 
 
 type EEditorMsg

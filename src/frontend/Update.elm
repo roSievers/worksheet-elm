@@ -76,15 +76,7 @@ update msg model =
                     ( model, Cmd.none )
 
                 Just sheet ->
-                    let
-                        ( newSheet, command ) =
-                            updateSheet msg sheet
-                    in
-                        ( { model
-                            | sheet = Just newSheet
-                          }
-                        , command
-                        )
+                    updateSheet msg model sheet
 
         Save time sheet ->
             ( model
@@ -112,47 +104,80 @@ update msg model =
             )
 
 
-updateSheet : SheetMsg -> Sheet -> ( Sheet, Cmd Msg )
-updateSheet msg sheet =
+{-| This could be refactored using optics.
+-}
+setSheet : ( Sheet, a ) -> Model -> ( Model, a )
+setSheet ( sheet, cmd ) model =
+    ( { model | sheet = Just sheet }, cmd )
+
+
+updateSheet : SheetMsg -> Model -> Sheet -> ( Model, Cmd Msg )
+updateSheet msg model sheet =
     case msg of
-        NewExercise exercise ->
-            ( Sheet.insert exercise sheet
-            , Cmd.none
-            )
+        NewExercise oldUID exercise ->
+            setSheet
+                ( Sheet.replaceOldUID oldUID exercise sheet
+                , Cmd.Extra.message (SheetMessage DirtySheet)
+                )
+                model
 
         DirtySheet ->
-            ( Sheet.dirty sheet
-            , Cmd.none
-            )
+            setSheet
+                ( Sheet.dirty sheet
+                , Cmd.none
+                )
+                model
 
         AutosaveTick time ->
             let
                 ( newSheet, doSave ) =
                     Sheet.autosaveTick sheet
             in
-                ( newSheet
-                , if doSave then
-                    Cmd.Extra.message (Save time newSheet)
-                  else
-                    Cmd.none
-                )
+                setSheet
+                    ( newSheet
+                    , if doSave then
+                        Cmd.Extra.message (Save time newSheet)
+                      else
+                        Cmd.none
+                    )
+                    model
 
         SaveDone time ->
-            ( Sheet.saveDone time sheet
-            , Cmd.none
-            )
+            setSheet
+                ( Sheet.saveDone time sheet
+                , Cmd.none
+                )
+                model
 
         UpdateExercise exercise ->
-            ( Sheet.insert exercise sheet
-            , Cmd.batch
-                [ Cmd.Extra.message CancelEdit
-                , Task.perform LoadingFail (NewExercise >> SheetMessage) (Exercise.updateExercise exercise)
-                ]
-            )
+            setSheet
+                ( Sheet.insert (Debug.log "exercise: " exercise) sheet
+                , Cmd.batch
+                    [ Cmd.Extra.message CancelEdit
+                    , Task.perform LoadingFail
+                        (NewExercise exercise.uid >> SheetMessage)
+                        (Exercise.updateExercise exercise)
+                    ]
+                )
+                model
 
         SwitchPosition first second ->
-            ( Sheet.switchPosition first second sheet
-            , Cmd.Extra.message (SheetMessage DirtySheet) )
+            setSheet
+                ( Sheet.switchPosition first second sheet
+                , Cmd.Extra.message (SheetMessage DirtySheet)
+                )
+                model
+
+        InsertNewExercise index ->
+            let
+                ( newModel, uid ) =
+                    Model.getEphemeralUID model
+            in
+                setSheet
+                    ( Sheet.insertAt index (Exercise.buildExercise "" "" uid) sheet
+                    , Cmd.none
+                    )
+                    newModel
 
 
 updateExercise : ExerciseMsg -> Model -> ( Model, Cmd Msg )

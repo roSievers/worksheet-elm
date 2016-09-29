@@ -155,19 +155,70 @@ insert element sheet =
         }
     else
         { sheet
-            | list = (element :: sheet.list)
-            , set = (Set.insert element.uid sheet.set)
+            | list = element :: sheet.list
+            , set = Set.insert element.uid sheet.set
+        }
+
+
+insertAt : Int -> Exercise -> Sheet -> Sheet
+insertAt index element sheet =
+    if Set.member element.uid sheet.set then
+        {- If the exercise is already present then insertAt has to move the it.
+           The tricky part is avoiding of by one errors, as the element
+           vannishes at another location.
+        -}
+        let
+            ( head, tail ) =
+                List.Extra.splitAt index sheet.list
+
+            cleanHead =
+                List.filter (extractUID >> ((/=) element.uid)) head
+
+            cleanTail =
+                List.filter (extractUID >> ((/=) element.uid)) tail
+        in
+            { sheet
+                | list = List.append cleanHead (element :: cleanTail)
+                , set = sheet.set
+            }
+    else
+        { sheet
+            | list = listInsertAt index element sheet.list
+            , set = Set.insert element.uid sheet.set
+        }
+
+
+replaceOldUID : Int -> Exercise -> Sheet -> Sheet
+replaceOldUID oldUID element sheet =
+    let
+        list =
+            List.Extra.updateIf
+                (extractUID >> ((==) oldUID))
+                (\_ -> element)
+                sheet.list
+
+        set =
+            sheet.set
+                |> Set.remove oldUID
+                |> Set.insert element.uid
+    in
+        { sheet
+            | list = list
+            , set = set
         }
 
 
 switchPosition : Int -> Int -> Sheet -> Sheet
 switchPosition first second sheet =
     let
-        maybeNewList = swapAt first second sheet.list
+        maybeNewList =
+            swapAt first second sheet.list
     in
         { sheet | list = Maybe.withDefault sheet.list maybeNewList }
 
 
+{-| I have opened a pull request for swapAt with list-extra.
+-}
 swapAt : Int -> Int -> List a -> Maybe (List a)
 swapAt index1 index2 l =
     if index1 == index2 then
@@ -190,6 +241,17 @@ swapAt index1 index2 l =
                 )
                 (List.Extra.uncons head2)
                 (List.Extra.uncons tail2)
+
+
+{-| This really belongs into List.Extra
+-}
+listInsertAt : Int -> a -> List a -> List a
+listInsertAt index value list =
+    let
+        ( head, tail ) =
+            List.Extra.splitAt index list
+    in
+        List.append head (value :: tail)
 
 
 member : Int -> Sheet -> Bool

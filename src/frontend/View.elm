@@ -17,6 +17,7 @@ import Route exposing (..)
 
 -- VIEW
 
+
 view : Model -> Html Msg
 view model =
     case model.route of
@@ -59,18 +60,25 @@ loadSheetButton lsheet =
 
 sheetPanel : Model -> Sheet -> Html Msg
 sheetPanel model sheet =
-    Components.layout
-        model
-        [ h1 [] [ text sheet.title ]
-        , h2 [] [ button [ onClick (SetSheet Nothing), class "pure-button" ] [ text "Close" ] ]
-        ]
-        (Components.mainWithSidebar
-            [ Components.list
-                (sheetListExerciseView model sheet)
-                sheet.list
+    let
+        listComponent =
+            if model.editMode then
+                Components.listIntersperse (interExerciseMenu model)
+            else
+                Components.list
+    in
+        Components.layout
+            model
+            [ h1 [] [ text sheet.title ]
+            , h2 [] [ button [ onClick (SetSheet Nothing), class "pure-button" ] [ text "Close" ] ]
             ]
-            (sheetSummarySidebar model sheet)
-        )
+            (Components.mainWithSidebar
+                [ listComponent
+                    (sheetListExerciseView model sheet)
+                    sheet.list
+                ]
+                (sheetSummarySidebar model sheet)
+            )
 
 
 sheetListExerciseView : Model -> Sheet -> IndexDecorator Exercise
@@ -188,8 +196,12 @@ exerciseView decorator index exercise =
                 ]
             , p [ class "summary-text" ] [ Markdown.toHtml [] exercise.text ]
             ]
-        , betweenMenu (addButton index)
         ]
+
+
+interExerciseMenu : Model -> Int -> () -> Html Msg
+interExerciseMenu _ index _ =
+    betweenMenu (addButton index ())
 
 
 betweenMenu : List (Html msg) -> Html msg
@@ -197,9 +209,9 @@ betweenMenu buttons =
     div [ class "between-menu" ] buttons
 
 
-addButton : Int -> List (Html Msg)
-addButton index =
-    [ button [ class "pure-button" ] [ icon Fa.plus ]
+addButton : Int -> () -> List (Html Msg)
+addButton index _ =
+    [ button [ onClick (SheetMessage (InsertNewExercise index)), class "pure-button" ] [ icon Fa.plus ]
     ]
 
 
