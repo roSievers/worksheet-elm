@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (class, type', placeholder, value, style, id)
 import Html.Events exposing (..)
 import Time
+import Markdown
 import Components exposing (Decorator, IndexDecorator)
 import Events exposing (..)
 import Exercise exposing (Exercise)
@@ -15,7 +16,6 @@ import Route exposing (..)
 
 
 -- VIEW
-
 
 view : Model -> Html Msg
 view model =
@@ -186,7 +186,7 @@ exerciseView decorator index exercise =
                     [ decorator index exercise
                     ]
                 ]
-            , p [ class "summary-text" ] [ text exercise.text ]
+            , p [ class "summary-text" ] [ Markdown.toHtml [] exercise.text ]
             ]
         , betweenMenu (addButton index)
         ]
