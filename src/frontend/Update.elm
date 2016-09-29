@@ -106,6 +106,11 @@ update msg model =
             , Cmd.none
             )
 
+        ToggleResponsiveMenu ->
+            ( { model | responsiveMenuActive = not model.responsiveMenuActive }
+            , Cmd.none
+            )
+
 
 updateSheet : SheetMsg -> Sheet -> ( Sheet, Cmd Msg )
 updateSheet msg sheet =

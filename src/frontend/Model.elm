@@ -19,6 +19,7 @@ type alias Model =
     , sheet : Maybe Sheet
     , sheets : Maybe (List LazySheet)
     , currentUID : Int
+    , responsiveMenuActive : Bool
     }
 
 
@@ -31,6 +32,7 @@ init =
       , sheet = Nothing
       , sheets = Nothing
       , currentUID = 1001
+      , responsiveMenuActive = False
       }
     , Cmd.batch
         [ requestExerciseList SearchResultsArrived "http://localhost:8010/api/deprecated/exercises"

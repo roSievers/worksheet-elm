@@ -36,6 +36,7 @@ type Msg
     | EditExercise Exercise
     | CancelEdit
     | SetEditMode Bool
+    | ToggleResponsiveMenu
 
 type ExerciseMsg
     = AddExercise Exercise

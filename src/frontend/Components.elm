@@ -10,6 +10,7 @@ import Exercise exposing (..)
 import Sheet exposing (Sheet)
 import FontAwesome exposing (..)
 import Icons as Fa
+import Model exposing (Model)
 
 
 {-| TODO: This could also be called View a. Depending on the context either
@@ -18,13 +19,29 @@ might be better.
 type alias Decorator a =
     a -> Html Msg
 
+
 type alias IndexDecorator a =
     Int -> a -> Html Msg
 
 
+layout : Model -> List (Html Msg) -> Html Msg -> Html Msg
 layout model title content =
-    div [ id "layout" ]
-        [ a [ href "#menu", id "menuLink", class "menu-link" ]
+    div
+        [ id "layout"
+        , if model.responsiveMenuActive then
+            class "active"
+          else
+            class ""
+        ]
+        [ a
+            [ href "#menu"
+            , id "menuLink"
+            , if model.responsiveMenuActive then
+                class "menu-link active"
+              else
+                class "menu-link"
+            , onClick ToggleResponsiveMenu
+            ]
             [ span [] [] ]
         , menu model
         , div [ id "main" ]
@@ -37,29 +54,60 @@ layout model title content =
 {-| header : Model -> Html Msg
 -}
 menu model =
-    div [ id "menu" ]
+    div
+        [ id "menu"
+        , if model.responsiveMenuActive then
+            class "active"
+          else
+            class ""
+        ]
         [ div [ class "pure-menu" ]
-            [ a [ class "pure-menu-heading", href "#" ] [ text "Worksheet" ]
+            [ span [ class "pure-menu-heading" ] [ text "Worksheet" ]
             , ul [ class "pure-menu-list" ]
-                [ li [ class "pure-menu-item" ]
-                    [ a [ onClick (SetRoute Home), class "pure-menu-link" ] [ text " Home" ] ]
-                , currentSheetButton model.sheet
-                , li [ class "pure-menu-item" ]
-                    [ a [ onClick (SetRoute Search), class "pure-menu-link" ] [ icon Fa.search, text " Search" ] ]
-                ]
+                ([ Home, Current, Search ]
+                    |> List.map (routeButton model)
+                    |> List.filterMap identity
+                )
             ]
         ]
 
 
-currentSheetButton : Maybe Sheet -> Html Msg
-currentSheetButton sheet =
-    case sheet of
-        Nothing ->
-            span [] []
+routeButton : Model -> Route -> Maybe (Html Msg)
+routeButton model route =
+    Maybe.map
+        (\caption ->
+            li
+                [ if model.route == route then
+                    class "pure-menu-item pure-menu-selected"
+                  else
+                    class "pure-menu-item"
+                ]
+                [ a
+                    [ onClick (SetRoute route)
+                    , class "pure-menu-link"
+                    , href "#"
+                    ]
+                    caption
+                ]
+        )
+        (routeCaption model route)
 
-        Just sheet' ->
-            li [ class "pure-menu-item" ]
-                [ a [ onClick (SetRoute Current), class "pure-menu-link" ] [ icon Fa.list, text " ", text sheet'.title ] ]
+
+routeCaption : Model -> Route -> Maybe (List (Html Msg))
+routeCaption model route =
+    case route of
+        Home ->
+            Just [ text " Home" ]
+
+        Current ->
+            Maybe.map
+                (\sheet ->
+                    [ icon Fa.list, text " ", text sheet.title ]
+                )
+                model.sheet
+
+        Search ->
+            Just [ icon Fa.search, text " Search" ]
 
 
 header content =
