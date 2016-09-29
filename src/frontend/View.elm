@@ -147,6 +147,7 @@ toolboxDecorator sheet index exercise =
     span []
         [ button [ onClick (SheetMessage (SwitchPosition index (index - 1))), class "pure-button" ] [ icon Fa.arrow_up ]
         , button [ onClick (SheetMessage (SwitchPosition index (index + 1))), class "pure-button" ] [ icon Fa.arrow_down ]
+        , button [ onClick (SheetMessage (CutExercise exercise)), class "pure-button" ] [ icon Fa.cut ]
         , button [ onClick (EditExercise exercise), class "pure-button" ] [ Fa.edit |> icon ]
         , button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> icon ]
         ]
@@ -200,8 +201,10 @@ exerciseView decorator index exercise =
 
 
 interExerciseMenu : Model -> Int -> () -> Html Msg
-interExerciseMenu _ index _ =
-    betweenMenu (addButton index ())
+interExerciseMenu model index _ =
+    [ addButton index (), pasteButton model index () ]
+        |> List.filterMap identity
+        |> betweenMenu
 
 
 betweenMenu : List (Html msg) -> Html msg
@@ -209,10 +212,16 @@ betweenMenu buttons =
     div [ class "between-menu" ] buttons
 
 
-addButton : Int -> () -> List (Html Msg)
+addButton : Int -> () -> Maybe (Html Msg)
 addButton index _ =
-    [ button [ onClick (SheetMessage (InsertNewExercise index)), class "pure-button" ] [ icon Fa.plus ]
-    ]
+    Just (button [ onClick (SheetMessage (InsertNewExercise index)), class "pure-button" ] [ icon Fa.plus ])
+
+
+pasteButton : Model -> Int -> () -> Maybe (Html Msg)
+pasteButton model index _ =
+    Maybe.map
+        (\_ -> button [ onClick (SheetMessage (PasteExercise index)), class "pure-button" ] [ icon Fa.paste ])
+        model.cut
 
 
 sheetSummarySidebar : Model -> Sheet -> List (Html Msg)

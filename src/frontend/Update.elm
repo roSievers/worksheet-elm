@@ -179,6 +179,24 @@ updateSheet msg model sheet =
                     )
                     newModel
 
+        CutExercise exercise ->
+            ( { model | cut = Just exercise }
+            , Cmd.none
+            )
+
+        PasteExercise index ->
+            case model.cut of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just exercise ->
+                    ( { model
+                        | cut = Nothing
+                        , sheet = Just (Sheet.insertAt index exercise sheet)
+                      }
+                    , Cmd.Extra.message (SheetMessage DirtySheet)
+                    )
+
 
 updateExercise : ExerciseMsg -> Model -> ( Model, Cmd Msg )
 updateExercise msg model =

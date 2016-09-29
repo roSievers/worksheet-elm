@@ -17,6 +17,8 @@ type SheetMsg
     | UpdateExercise Exercise
     | SwitchPosition Int Int
     | InsertNewExercise Int
+    | CutExercise Exercise
+    | PasteExercise Int
 
 
 type EEditorMsg
