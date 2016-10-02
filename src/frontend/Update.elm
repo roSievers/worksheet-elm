@@ -13,14 +13,6 @@ import Model exposing (Model)
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ExerciseEditor msg' ->
-            case model.edit of
-                Just exercise ->
-                    updateEEditor msg' model exercise
-
-                Nothing ->
-                    ( model, Cmd.none )
-
         SetRoute route ->
             ( { model
                 | route = route
@@ -83,16 +75,6 @@ update msg model =
             , Task.perform LoadingFail (\_ -> SheetMessage (SaveDone time)) (Sheet.update sheet)
             )
 
-        EditExercise exercise ->
-            ( { model | edit = Just exercise }
-            , Cmd.none
-            )
-
-        CancelEdit ->
-            ( { model | edit = Nothing }
-            , Cmd.none
-            )
-
         SetEditMode bool ->
             ( { model | editMode = bool }
             , Cmd.none
@@ -153,7 +135,7 @@ updateSheet msg model sheet =
             setSheet
                 ( Sheet.insert (Debug.log "exercise: " exercise) sheet
                 , Cmd.batch
-                    [ Cmd.Extra.message CancelEdit
+                    [ Cmd.Extra.message (SheetMessage CancelEdit)
                     , Task.perform LoadingFail
                         (NewExercise exercise.uid >> SheetMessage)
                         (Exercise.updateExercise exercise)
@@ -180,22 +162,58 @@ updateSheet msg model sheet =
                     newModel
 
         CutExercise exercise ->
-            ( { model | cut = Just exercise }
-            , Cmd.none
-            )
+            setSheet
+                ( { sheet | cut = Just exercise }
+                , Cmd.none
+                )
+                model
 
         PasteExercise index ->
-            case model.cut of
+            case sheet.cut of
                 Nothing ->
                     ( model, Cmd.none )
 
                 Just exercise ->
-                    ( { model
-                        | cut = Nothing
-                        , sheet = Just (Sheet.insertAt index exercise sheet)
-                      }
-                    , Cmd.Extra.message (SheetMessage DirtySheet)
-                    )
+                    let
+                        newSheet =
+                            { sheet | cut = Nothing }
+                                |> Sheet.insertAt index exercise
+                    in
+                        ( { model
+                            | sheet = Just newSheet
+                          }
+                        , Cmd.Extra.message (SheetMessage DirtySheet)
+                        )
+
+        UpdateEditTitle title ->
+            case sheet.edit of
+                Just exercise ->
+                    ( { model | sheet = Just { sheet | edit = Just { exercise | title = title } } }, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        UpdateEditText text ->
+            case sheet.edit of
+                Just exercise ->
+                    ( { model | sheet = Just { sheet | edit = Just { exercise | text = text } } }, Cmd.none )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        EditExercise exercise ->
+            setSheet
+                ( { sheet | edit = Just exercise }
+                , Cmd.none
+                )
+                model
+
+        CancelEdit ->
+            setSheet
+                ( { sheet | edit = Nothing }
+                , Cmd.none
+                )
+                model
 
 
 updateExercise : ExerciseMsg -> Model -> ( Model, Cmd Msg )
@@ -214,13 +232,3 @@ updateExercise msg model =
               }
             , Cmd.Extra.message (SheetMessage DirtySheet)
             )
-
-
-updateEEditor : EEditorMsg -> Model -> Exercise -> ( Model, Cmd Msg )
-updateEEditor msg model exercise =
-    case msg of
-        UpdateTitle title ->
-            ( { model | edit = Just { exercise | title = title } }, Cmd.none )
-
-        UpdateText text ->
-            ( { model | edit = Just { exercise | text = text } }, Cmd.none )

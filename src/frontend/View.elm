@@ -63,7 +63,7 @@ sheetPanel model sheet =
     let
         listComponent =
             if model.editMode then
-                Components.listIntersperse (interExerciseMenu model)
+                Components.listIntersperse (interExerciseMenu model sheet)
             else
                 Components.list
     in
@@ -83,7 +83,7 @@ sheetPanel model sheet =
 
 sheetListExerciseView : Model -> Sheet -> IndexDecorator Exercise
 sheetListExerciseView model sheet index exercise =
-    case editVersion model exercise of
+    case editVersion model sheet exercise of
         Nothing ->
             exerciseView
                 (if model.editMode then
@@ -105,20 +105,20 @@ exerciseEditView _ exercise =
             [ input
                 [ type' "text"
                 , placeholder "Title"
-                , onInput (ExerciseEditor << UpdateTitle)
+                , onInput (SheetMessage << UpdateEditTitle)
                 , value exercise.title
                 , class "edit-h1"
                 ]
                 []
             , textarea
                 [ placeholder "Text"
-                , onInput (ExerciseEditor << UpdateText)
+                , onInput (SheetMessage << UpdateEditText)
                 , value exercise.text
                 , class "edit-p"
                 ]
                 []
             , div [ class "right-align" ]
-                [ button [ onClick CancelEdit, class "pure-button" ] [ text "Cancel" ]
+                [ button [ onClick (SheetMessage CancelEdit), class "pure-button" ] [ text "Cancel" ]
                 , text " "
                 , button [ onClick (SheetMessage (UpdateExercise exercise)), class "pure-button pure-button-primary" ] [ text "Save" ]
                 ]
@@ -126,9 +126,9 @@ exerciseEditView _ exercise =
         ]
 
 
-editVersion : Model -> Exercise -> Maybe Exercise
-editVersion model exercise =
-    case model.edit of
+editVersion : Model -> Sheet -> Exercise -> Maybe Exercise
+editVersion model sheet exercise =
+    case sheet.edit of
         Nothing ->
             Nothing
 
@@ -148,7 +148,7 @@ toolboxDecorator sheet index exercise =
         [ button [ onClick (SheetMessage (SwitchPosition index (index - 1))), class "pure-button" ] [ icon Fa.arrow_up ]
         , button [ onClick (SheetMessage (SwitchPosition index (index + 1))), class "pure-button" ] [ icon Fa.arrow_down ]
         , button [ onClick (SheetMessage (CutExercise exercise)), class "pure-button" ] [ icon Fa.cut ]
-        , button [ onClick (EditExercise exercise), class "pure-button" ] [ Fa.edit |> icon ]
+        , button [ onClick (SheetMessage (EditExercise exercise)), class "pure-button" ] [ Fa.edit |> icon ]
         , button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> icon ]
         ]
 
@@ -200,9 +200,9 @@ exerciseView decorator index exercise =
         ]
 
 
-interExerciseMenu : Model -> Int -> () -> Html Msg
-interExerciseMenu model index _ =
-    [ addButton index (), pasteButton model index () ]
+interExerciseMenu : Model -> Sheet -> Int -> () -> Html Msg
+interExerciseMenu model sheet index _ =
+    [ addButton index (), pasteButton model sheet index () ]
         |> List.filterMap identity
         |> betweenMenu
 
@@ -217,11 +217,11 @@ addButton index _ =
     Just (button [ onClick (SheetMessage (InsertNewExercise index)), class "pure-button" ] [ icon Fa.plus ])
 
 
-pasteButton : Model -> Int -> () -> Maybe (Html Msg)
-pasteButton model index _ =
+pasteButton : Model -> Sheet -> Int -> () -> Maybe (Html Msg)
+pasteButton model sheet index _ =
     Maybe.map
         (\_ -> button [ onClick (SheetMessage (PasteExercise index)), class "pure-button" ] [ icon Fa.paste ])
-        model.cut
+        sheet.cut
 
 
 sheetSummarySidebar : Model -> Sheet -> List (Html Msg)
@@ -240,7 +240,7 @@ sheetSummarySidebar model sheet =
         ]
     , h3 [] [ text "Debug Info" ]
     , p []
-        [ text ("edit: " ++ (toString model.edit))
+        [ text ("edit: " ++ (toString sheet.edit))
         ]
     ]
 

@@ -117,6 +117,8 @@ type alias Sheet =
         SyncState
         -- This is meta information that should be located elsewhere...
     , lastSave : Maybe Time
+    , edit : Maybe Exercise
+    , cut : Maybe Exercise
     }
 
 
@@ -129,7 +131,15 @@ fromList uid title list =
         set =
             Set.fromList <| List.map extractUID list'
     in
-        Sheet uid list set title UpToDate Nothing
+        { uid = uid
+        , list = list
+        , set = set
+        , title = title
+        , syncState = UpToDate
+        , lastSave = Nothing
+        , edit = Nothing
+        , cut = Nothing
+        }
 
 
 remove : Int -> Sheet -> Sheet

@@ -19,15 +19,13 @@ type SheetMsg
     | InsertNewExercise Int
     | CutExercise Exercise
     | PasteExercise Int
-
-
-type EEditorMsg
-    = UpdateTitle String
-    | UpdateText String
+    | UpdateEditTitle String
+    | UpdateEditText String
+    | EditExercise Exercise
+    | CancelEdit
 
 type Msg
-    = ExerciseEditor EEditorMsg
-    | SetRoute Route
+    = SetRoute Route
     | LoadingFail Http.Error
     | SearchResultsArrived (List Exercise)
     | SheetArrived Sheet
@@ -36,8 +34,6 @@ type Msg
     | SetSheet (Maybe LazySheet)
     | SheetMessage SheetMsg
     | Save Time Sheet
-    | EditExercise Exercise
-    | CancelEdit
     | SetEditMode Bool
     | ToggleResponsiveMenu
 
