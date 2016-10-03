@@ -13,12 +13,16 @@ import Route exposing (Route(Home))
 
 type alias Model =
     { route : Route
+    -- The search Panel
     , exercises : List Exercise
-    , editMode : Bool
-    , sheet : Maybe Sheet
+    -- The list of all sheets, choose one to open.
     , sheets : Maybe (List LazySheet)
-    , ephemeralUID : Int
     , responsiveMenuActive : Bool
+    , sheet : Maybe Sheet
+    -- This will be removed once I have a better backend.
+    , ephemeralUID : Int
+    -- Move this into the Sheet Model
+    , editMode : Bool
     }
 
 

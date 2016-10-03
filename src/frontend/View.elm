@@ -9,8 +9,9 @@ import Components exposing (Decorator, IndexDecorator)
 import Events exposing (..)
 import Exercise exposing (Exercise)
 import Sheet exposing (Sheet, LazySheet, SyncState(..))
-import FontAwesome exposing (..)
-import Icons as Fa
+import FontAwesome
+import FontAwesome.Icons as Fa
+import FontAwesome.Modifiers as FaMod
 import Model exposing (Model)
 import Route exposing (..)
 
@@ -145,20 +146,20 @@ generates remove buttons. It is meant to be used on the sheet view only.
 toolboxDecorator : Sheet -> IndexDecorator Exercise
 toolboxDecorator sheet index exercise =
     span []
-        [ button [ onClick (SheetMessage (SwitchPosition index (index - 1))), class "pure-button" ] [ icon Fa.arrow_up ]
-        , button [ onClick (SheetMessage (SwitchPosition index (index + 1))), class "pure-button" ] [ icon Fa.arrow_down ]
-        , button [ onClick (SheetMessage (CutExercise exercise)), class "pure-button" ] [ icon Fa.cut ]
-        , button [ onClick (SheetMessage (EditExercise exercise)), class "pure-button" ] [ Fa.edit |> icon ]
-        , button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> icon ]
+        [ button [ onClick (SheetMessage (SwitchPosition index (index - 1))), class "pure-button" ] [ FontAwesome.toHtml Fa.arrow_up ]
+        , button [ onClick (SheetMessage (SwitchPosition index (index + 1))), class "pure-button" ] [ FontAwesome.toHtml Fa.arrow_down ]
+        , button [ onClick (SheetMessage (CutExercise exercise)), class "pure-button" ] [ FontAwesome.toHtml Fa.cut ]
+        , button [ onClick (SheetMessage (EditExercise exercise)), class "pure-button" ] [ Fa.edit |> FontAwesome.toHtml ]
+        , button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> FontAwesome.toHtml ]
         ]
 
 
 addRemoveDecorator : Sheet -> IndexDecorator Exercise
 addRemoveDecorator sheet _ exercise =
     if Sheet.member exercise.uid sheet then
-        button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> icon ]
+        button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> FontAwesome.toHtml ]
     else
-        button [ onClick (ExerciseMessage (AddExercise exercise)), class "pure-button" ] [ Fa.plus |> icon ]
+        button [ onClick (ExerciseMessage (AddExercise exercise)), class "pure-button" ] [ Fa.plus |> FontAwesome.toHtml ]
 
 
 emptyDecorator : IndexDecorator Exercise
@@ -214,13 +215,13 @@ betweenMenu buttons =
 
 addButton : Int -> () -> Maybe (Html Msg)
 addButton index _ =
-    Just (button [ onClick (SheetMessage (InsertNewExercise index)), class "pure-button" ] [ icon Fa.plus ])
+    Just (button [ onClick (SheetMessage (InsertNewExercise index)), class "pure-button" ] [ FontAwesome.toHtml Fa.plus ])
 
 
 pasteButton : Model -> Sheet -> Int -> () -> Maybe (Html Msg)
 pasteButton model sheet index _ =
     Maybe.map
-        (\_ -> button [ onClick (SheetMessage (PasteExercise index)), class "pure-button" ] [ icon Fa.paste ])
+        (\_ -> button [ onClick (SheetMessage (PasteExercise index)), class "pure-button" ] [ FontAwesome.toHtml Fa.paste ])
         sheet.cut
 
 
@@ -228,10 +229,10 @@ sheetSummarySidebar : Model -> Sheet -> List (Html Msg)
 sheetSummarySidebar model sheet =
     [ p []
         [ button [ onClick (SetEditMode True), disableIf (not model.editMode) ]
-            [ Fa.pencil |> fixWidth |> icon, text " edit mode" ]
+            [ Fa.pencil |> FaMod.fixWidth |> FontAwesome.toHtml, text " edit mode" ]
         , br [] []
         , button [ onClick (SetEditMode False), disableIf model.editMode ]
-            [ Fa.eye |> fixWidth |> icon, text " view mode" ]
+            [ Fa.eye |> FaMod.fixWidth |> FontAwesome.toHtml, text " view mode" ]
         ]
     , p []
         [ syncState sheet
@@ -250,37 +251,37 @@ syncState sheet =
     case sheet.syncState of
         UpToDate ->
             span []
-                [ icon Fa.check
+                [ FontAwesome.toHtml Fa.check
                 , text " Saved"
                 ]
 
         Delayed ->
             span []
-                [ icon Fa.floppy_o
+                [ FontAwesome.toHtml Fa.floppy_o
                 , text " Modified"
                 ]
 
         ReadyToSync ->
             span []
-                [ icon Fa.floppy_o
+                [ FontAwesome.toHtml Fa.floppy_o
                 , text " Modified"
                 ]
 
         Syncing ->
             span []
-                [ icon (spinning Fa.refresh)
+                [ FontAwesome.toHtml (FaMod.spinning Fa.refresh)
                 , text " Saving..."
                 ]
 
         SyncingOutdated ->
             span []
-                [ icon (spinning Fa.refresh)
+                [ FontAwesome.toHtml (FaMod.spinning Fa.refresh)
                 , text " Saving..."
                 ]
 
         SyncError ->
             span []
-                [ icon Fa.exclamation
+                [ FontAwesome.toHtml Fa.exclamation
                 , text " Error while saving."
                 ]
 

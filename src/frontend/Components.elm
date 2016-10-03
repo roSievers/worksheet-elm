@@ -9,8 +9,8 @@ import Route exposing (..)
 import Events exposing (..)
 import Exercise exposing (..)
 import Sheet exposing (Sheet)
-import FontAwesome exposing (..)
-import Icons as Fa
+import FontAwesome
+import FontAwesome.Icons as Fa
 import Model exposing (Model)
 
 
@@ -103,12 +103,12 @@ routeCaption model route =
         Current ->
             Maybe.map
                 (\sheet ->
-                    [ icon Fa.list, text " ", text sheet.title ]
+                    [ FontAwesome.toHtml Fa.list, text " ", text sheet.title ]
                 )
                 model.sheet
 
         Search ->
-            Just [ icon Fa.search, text " Search" ]
+            Just [ FontAwesome.toHtml Fa.search, text " Search" ]
 
 
 header content =
