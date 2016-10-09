@@ -3,6 +3,7 @@ module View exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (class, type', placeholder, value, style, id)
 import Html.Events exposing (..)
+import Html.App as Html
 import Time
 import Markdown
 import Components exposing (Decorator, IndexDecorator)
@@ -56,7 +57,7 @@ homePanel model =
 
 loadSheetButton : LazySheet -> Html Msg
 loadSheetButton lsheet =
-    button [ onClick (SetSheet (Just lsheet)), class "pure-button" ] [ text lsheet.title ]
+    button [ onClick (SetSheet lsheet), class "pure-button" ] [ text lsheet.title ]
 
 
 sheetPanel : Model -> Sheet -> Html Msg
@@ -71,7 +72,7 @@ sheetPanel model sheet =
         Components.layout
             model
             [ h1 [] [ text sheet.title ]
-            , h2 [] [ button [ onClick (SetSheet Nothing), class "pure-button" ] [ text "Close" ] ]
+            , h2 [] [ button [ onClick CloseSheet, class "pure-button" ] [ text "Close" ] ]
             ]
             (Components.mainWithSidebar
                 [ listComponent
@@ -145,21 +146,23 @@ generates remove buttons. It is meant to be used on the sheet view only.
 -}
 toolboxDecorator : Sheet -> IndexDecorator Exercise
 toolboxDecorator sheet index exercise =
-    span []
-        [ button [ onClick (SheetMessage (SwitchPosition index (index - 1))), class "pure-button" ] [ FontAwesome.toHtml Fa.arrow_up ]
-        , button [ onClick (SheetMessage (SwitchPosition index (index + 1))), class "pure-button" ] [ FontAwesome.toHtml Fa.arrow_down ]
-        , button [ onClick (SheetMessage (CutExercise exercise)), class "pure-button" ] [ FontAwesome.toHtml Fa.cut ]
-        , button [ onClick (SheetMessage (EditExercise exercise)), class "pure-button" ] [ Fa.edit |> FontAwesome.toHtml ]
-        , button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> FontAwesome.toHtml ]
-        ]
+    Html.map SheetMessage
+        (span []
+            [ button [ onClick (SwitchPosition index (index - 1)), class "pure-button" ] [ FontAwesome.toHtml Fa.arrow_up ]
+            , button [ onClick (SwitchPosition index (index + 1)), class "pure-button" ] [ FontAwesome.toHtml Fa.arrow_down ]
+            , button [ onClick (CutExercise exercise), class "pure-button" ] [ FontAwesome.toHtml Fa.cut ]
+            , button [ onClick (EditExercise exercise), class "pure-button" ] [ Fa.edit |> FontAwesome.toHtml ]
+            , button [ onClick (RemoveExercise exercise.uid), class "pure-button" ] [ Fa.close |> FontAwesome.toHtml ]
+            ]
+        )
 
 
 addRemoveDecorator : Sheet -> IndexDecorator Exercise
 addRemoveDecorator sheet _ exercise =
     if Sheet.member exercise.uid sheet then
-        button [ onClick (ExerciseMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> FontAwesome.toHtml ]
+        button [ onClick (SheetMessage (RemoveExercise exercise.uid)), class "pure-button" ] [ Fa.close |> FontAwesome.toHtml ]
     else
-        button [ onClick (ExerciseMessage (AddExercise exercise)), class "pure-button" ] [ Fa.plus |> FontAwesome.toHtml ]
+        button [ onClick (SheetMessage (AddExercise exercise)), class "pure-button" ] [ Fa.plus |> FontAwesome.toHtml ]
 
 
 emptyDecorator : IndexDecorator Exercise

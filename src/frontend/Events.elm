@@ -11,7 +11,6 @@ import Time exposing (Time)
 component to exist. -}
 type SheetMsg
     = NewExercise Int Exercise
-    | DirtySheet
     | AutosaveTick Time
     | SaveDone Time
     | UpdateExercise Exercise
@@ -23,6 +22,8 @@ type SheetMsg
     | UpdateEditText String
     | EditExercise Exercise
     | CancelEdit
+    | AddExercise Exercise
+    | RemoveExercise Int
 
 type Msg
     = SetRoute Route
@@ -30,13 +31,8 @@ type Msg
     | SearchResultsArrived (List Exercise)
     | SheetArrived Sheet
     | SheetListArrived (List LazySheet)
-    | ExerciseMessage ExerciseMsg
-    | SetSheet (Maybe LazySheet)
+    | SetSheet LazySheet
+    | CloseSheet
     | SheetMessage SheetMsg
-    | Save Time Sheet
     | SetEditMode Bool
     | ToggleResponsiveMenu
-
-type ExerciseMsg
-    = AddExercise Exercise
-    | RemoveExercise Int

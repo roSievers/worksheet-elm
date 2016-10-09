@@ -3,6 +3,7 @@ module Update exposing (update)
 import Task
 import Cmd.Extra
 import Debug exposing (crash)
+import Return exposing (Return)
 import Route exposing (..)
 import Events exposing (..)
 import Exercise exposing (..)
@@ -14,159 +15,123 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SetRoute route ->
-            ( { model
-                | route = route
-              }
-            , Cmd.none
-            )
+            model
+                |> setRoute route
+                |> Return.singleton
 
         LoadingFail err ->
             crash "LoadingFail"
 
         SearchResultsArrived new ->
-            ( { model
-                | exercises = List.append model.exercises new
-              }
-            , Cmd.none
-            )
+            Return.singleton
+                { model
+                    | exercises = List.append model.exercises new
+                }
 
         SheetArrived new ->
-            ( { model
-                | sheet = Just new
-              }
-            , Cmd.none
-            )
-
-        ExerciseMessage msg' ->
-            updateExercise msg' model
+            Return.singleton { model | sheet = Just new }
 
         SheetListArrived sheets ->
-            ( { model
-                | sheets = Just sheets
-              }
-            , Cmd.none
-            )
+            Return.singleton { model | sheets = Just sheets }
 
-        SetSheet lsheet ->
-            case lsheet of
-                Nothing ->
-                    ( { model
-                        | sheet = Nothing
-                      }
-                    , if model.route == Current then
-                        Cmd.Extra.message (SetRoute Home)
-                      else
-                        Cmd.none
-                    )
+        SetSheet lazySheet ->
+            Return.return
+                model
+                (Task.perform LoadingFail SheetArrived (Sheet.load lazySheet))
 
-                Just lsheet' ->
-                    ( model, Task.perform LoadingFail SheetArrived <| Sheet.load lsheet' )
+        CloseSheet ->
+            { model | sheet = Nothing }
+                |> (if (model.route == Current) then
+                        setRoute Home
+                    else
+                        identity
+                   )
+                |> Return.singleton
 
         SheetMessage msg ->
             case model.sheet of
                 Nothing ->
-                    ( model, Cmd.none )
+                    Return.singleton model
 
                 Just sheet ->
                     updateSheet msg model sheet
 
-        Save time sheet ->
-            ( model
-            , Task.perform LoadingFail (\_ -> SheetMessage (SaveDone time)) (Sheet.update sheet)
-            )
-
         SetEditMode bool ->
-            ( { model | editMode = bool }
-            , Cmd.none
-            )
+            Return.singleton { model | editMode = bool }
 
         ToggleResponsiveMenu ->
-            ( { model | responsiveMenuActive = not model.responsiveMenuActive }
-            , Cmd.none
-            )
+            Return.singleton { model | responsiveMenuActive = not model.responsiveMenuActive }
 
 
-{-| This could be refactored using optics.
--}
-setSheet : ( Sheet, a ) -> Model -> ( Model, a )
-setSheet ( sheet, cmd ) model =
-    ( { model | sheet = Just sheet }, cmd )
+setRoute : Route -> Model -> Model
+setRoute route model =
+    { model | route = route }
+
+
+wrapModel : Model -> Sheet -> Model
+wrapModel model sheet =
+    { model | sheet = Just sheet }
 
 
 updateSheet : SheetMsg -> Model -> Sheet -> ( Model, Cmd Msg )
 updateSheet msg model sheet =
     case msg of
         NewExercise oldUID exercise ->
-            setSheet
-                ( Sheet.replaceOldUID oldUID exercise sheet
-                , Cmd.Extra.message (SheetMessage DirtySheet)
-                )
-                model
-
-        DirtySheet ->
-            setSheet
-                ( Sheet.dirty sheet
-                , Cmd.none
-                )
-                model
+            Sheet.replaceOldUID oldUID exercise sheet
+                |> Sheet.dirty
+                |> wrapModel model
+                |> Return.singleton
 
         AutosaveTick time ->
             let
                 ( newSheet, doSave ) =
                     Sheet.autosaveTick sheet
             in
-                setSheet
-                    ( newSheet
-                    , if doSave then
-                        Cmd.Extra.message (Save time newSheet)
-                      else
-                        Cmd.none
-                    )
-                    model
+                newSheet
+                    |> wrapModel model
+                    |> Return.singleton
+                    |> (if doSave then
+                            Return.command
+                                (Task.perform LoadingFail (\_ -> SheetMessage (SaveDone time)) (Sheet.update sheet))
+                        else
+                            identity
+                       )
 
         SaveDone time ->
-            setSheet
-                ( Sheet.saveDone time sheet
-                , Cmd.none
-                )
-                model
+            Sheet.saveDone time sheet
+                |> wrapModel model
+                |> Return.singleton
 
         UpdateExercise exercise ->
-            setSheet
-                ( Sheet.insert (Debug.log "exercise: " exercise) sheet
-                , Cmd.batch
-                    [ Cmd.Extra.message (SheetMessage CancelEdit)
-                    , Task.perform LoadingFail
+            Sheet.insert exercise sheet
+                |> wrapModel model
+                |> Return.singleton
+                |> Return.command (Cmd.Extra.message (SheetMessage CancelEdit))
+                |> Return.command
+                    (Task.perform LoadingFail
                         (NewExercise exercise.uid >> SheetMessage)
                         (Exercise.updateExercise exercise)
-                    ]
-                )
-                model
+                    )
 
         SwitchPosition first second ->
-            setSheet
-                ( Sheet.switchPosition first second sheet
-                , Cmd.Extra.message (SheetMessage DirtySheet)
-                )
-                model
+            Sheet.switchPosition first second sheet
+                |> Sheet.dirty
+                |> wrapModel model
+                |> Return.singleton
 
         InsertNewExercise index ->
             let
                 ( newModel, uid ) =
                     Model.getEphemeralUID model
             in
-                setSheet
-                    ( Sheet.insertAt index (Exercise.buildExercise "" "" uid) sheet
-                    , Cmd.none
-                    )
-                    newModel
+                Sheet.insertAt index (Exercise.buildExercise "" "" uid) sheet
+                    |> wrapModel newModel
+                    |> Return.singleton
 
         CutExercise exercise ->
-            setSheet
-                ( { sheet | cut = Just exercise }
-                , Cmd.none
-                )
-                model
+            { sheet | cut = Just exercise }
+                |> wrapModel model
+                |> Return.singleton
 
         PasteExercise index ->
             case sheet.cut of
@@ -174,16 +139,11 @@ updateSheet msg model sheet =
                     ( model, Cmd.none )
 
                 Just exercise ->
-                    let
-                        newSheet =
-                            { sheet | cut = Nothing }
-                                |> Sheet.insertAt index exercise
-                    in
-                        ( { model
-                            | sheet = Just newSheet
-                          }
-                        , Cmd.Extra.message (SheetMessage DirtySheet)
-                        )
+                    { sheet | cut = Nothing }
+                        |> Sheet.insertAt index exercise
+                        |> Sheet.dirty
+                        |> wrapModel model
+                        |> Return.singleton
 
         UpdateEditTitle title ->
             case sheet.edit of
@@ -202,33 +162,23 @@ updateSheet msg model sheet =
                     ( model, Cmd.none )
 
         EditExercise exercise ->
-            setSheet
-                ( { sheet | edit = Just exercise }
-                , Cmd.none
-                )
-                model
+            { sheet | edit = Just exercise }
+                |> wrapModel model
+                |> Return.singleton
 
         CancelEdit ->
-            setSheet
-                ( { sheet | edit = Nothing }
-                , Cmd.none
-                )
-                model
+            { sheet | edit = Nothing }
+                |> wrapModel model
+                |> Return.singleton
 
-
-updateExercise : ExerciseMsg -> Model -> ( Model, Cmd Msg )
-updateExercise msg model =
-    case msg of
         AddExercise exercise ->
-            ( { model
-                | sheet = Maybe.map (Sheet.insert exercise) model.sheet
-              }
-            , Cmd.Extra.message (SheetMessage DirtySheet)
-            )
+            Sheet.insert exercise sheet
+                |> Sheet.dirty
+                |> wrapModel model
+                |> Return.singleton
 
         RemoveExercise uid ->
-            ( { model
-                | sheet = Maybe.map (Sheet.remove uid) model.sheet
-              }
-            , Cmd.Extra.message (SheetMessage DirtySheet)
-            )
+            Sheet.remove uid sheet
+                |> Sheet.dirty
+                |> wrapModel model
+                |> Return.singleton
