@@ -1,7 +1,6 @@
 module Update exposing (update)
 
 import Task
-import Cmd.Extra
 import Debug exposing (crash)
 import Return exposing (Return)
 import Route exposing (..)
@@ -68,6 +67,11 @@ setRoute route model =
     { model | route = route }
 
 
+setEdit : Maybe Exercise -> Sheet -> Sheet
+setEdit edit sheet =
+    { sheet | edit = edit }
+
+
 wrapModel : Model -> Sheet -> Model
 wrapModel model sheet =
     { model | sheet = Just sheet }
@@ -104,9 +108,9 @@ updateSheet msg model sheet =
 
         UpdateExercise exercise ->
             Sheet.insert exercise sheet
+                |> setEdit Nothing
                 |> wrapModel model
                 |> Return.singleton
-                |> Return.command (Cmd.Extra.message (SheetMessage CancelEdit))
                 |> Return.command
                     (Task.perform LoadingFail
                         (NewExercise exercise.uid >> SheetMessage)
@@ -162,12 +166,12 @@ updateSheet msg model sheet =
                     ( model, Cmd.none )
 
         EditExercise exercise ->
-            { sheet | edit = Just exercise }
+            setEdit (Just exercise) sheet
                 |> wrapModel model
                 |> Return.singleton
 
         CancelEdit ->
-            { sheet | edit = Nothing }
+            setEdit Nothing sheet
                 |> wrapModel model
                 |> Return.singleton
 
