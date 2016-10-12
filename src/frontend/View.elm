@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Html exposing (..)
-import Html.Attributes exposing (class, type', placeholder, value, style, id)
+import Html.Attributes exposing (class, type', placeholder, value, style, id, href, target)
 import Html.Events exposing (..)
 import Html.App as Html
 import Time
@@ -72,7 +72,17 @@ sheetPanel model sheet =
         Components.layout
             model
             [ h1 [] [ text sheet.title ]
-            , h2 [] [ button [ onClick CloseSheet, class "pure-button" ] [ text "Close" ] ]
+            , h2 []
+                [ button
+                    [ href ("http://localhost:8010/render/sheet/" ++ toString sheet.uid)
+                    , target "_blank"
+                    , class "pure-button"
+                    ]
+                    [ FontAwesome.toHtml Fa.file_pdf_o
+                    , text " Download as PDF" ]
+                , text " "
+                , button [ onClick CloseSheet, class "pure-button" ] [ text "Close" ]
+                ]
             ]
             (Components.mainWithSidebar
                 [ listComponent
