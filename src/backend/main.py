@@ -5,7 +5,8 @@ from falcon_cors import CORS
 import json
 from pathlib import Path
 from tinydb import TinyDB, Query
-
+import os
+from subprocess import call
 
 db = TinyDB('db.json')
 
@@ -26,6 +27,16 @@ def getExercise(uid):
     exercise["uid"] = uid
 
     return exercise
+
+
+def getSheetJoinExercises(uid):
+    sheet = sheets.get(eid=uid)
+    sheet["exercises"] = list(map(
+        lambda eid: getExercise(eid),
+        sheet["content"]))
+    sheet["uid"] = uid
+
+    return sheet
 
 
 def parseInputJSON(req, legalKeys, maxSize=4096):
@@ -71,11 +82,7 @@ class SheetResource:
 
     @falcon.before(uidAsInt)
     def on_get(self, req, resp, uid):
-        sheet = sheets.get(eid=uid)
-        sheet["exercises"] = list(map(
-            lambda eid: getExercise(eid),
-            sheet["content"]))
-        sheet["uid"] = uid
+        sheet = getSheetJoinExercises(uid)
 
         resp.body = json.dumps(sheet)
 
@@ -90,6 +97,38 @@ class SheetResource:
 
         resp.body = json.dumps({"status": "ok"})
         resp.status = falcon.HTTP_201
+
+
+class PdfSheetResource:
+
+    @falcon.before(uidAsInt)
+    def on_get(self, req, resp, uid):
+        sheet = getSheetJoinExercises(uid)
+
+        tempTitle = os.urandom(20)
+        tempMd = "temp/{}.md".format(tempTitle)
+        tempPdf = "temp/{}.pdf".format(tempTitle)
+
+        def exoToStr(exo):
+            return """
+# {title}
+
+{content}""".format(title=exo["title"], content=exo["text"])
+
+        fullMarkdown = '\n\n'.join(map(exoToStr, sheet["exercises"]))
+
+        with open(tempMd, "w") as file:
+            file.write(fullMarkdown)
+
+        call(["pandoc", tempMd, "--latex-engine=xelatex", "-o", tempPdf])
+
+        # Return the resulting pdf to the client
+        resp.status = falcon.HTTP_200
+        resp.content_type = 'application/pdf'
+        resp.stream = open(tempPdf, 'rb')
+        resp.stream_len = os.path.getsize(tempPdf)
+        #with open(tempPdf, 'r') as f:
+        #    resp.body = f.read()
 
 
 class SheetListResource:
@@ -122,3 +161,4 @@ api.add_route('/api/exercise/{uid}', ExerciseResource())
 api.add_route('/api/deprecated/exercises', AllExercisesResource())
 api.add_route('/api/sheet/{uid}', SheetResource())
 api.add_route('/api/sheets', SheetListResource())
+api.add_route('/render/sheet/{uid}', PdfSheetResource())
